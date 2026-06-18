@@ -1,0 +1,30 @@
+<svg width="460" height="130" viewBox="0 0 460 130" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">VoiceID wordmark on dark</title>
+  <desc id="desc">VoiceID transparent wordmark optimized for dark backgrounds.</desc>
+  <defs>
+    <linearGradient id="accent" x1="14" y1="18" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00C6FF"/>
+      <stop offset="0.46" stop-color="#3A7BFF"/>
+      <stop offset="0.76" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#FF5AF7"/>
+    </linearGradient>
+    <linearGradient id="idFill" x1="330" y1="54" x2="452" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00C6FF"/>
+      <stop offset="0.42" stop-color="#3A7BFF"/>
+      <stop offset="0.72" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#FF5AF7"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <circle cx="62" cy="62" r="44" stroke="url(#accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="15 11"/>
+    <path d="M38 65V47" stroke="url(#accent)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M50 65V35" stroke="url(#accent)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M62 65V27" stroke="url(#accent)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M74 65V39" stroke="url(#accent)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M86 65V49" stroke="url(#accent)" stroke-width="5.5" stroke-linecap="round"/>
+    <circle cx="62" cy="75" r="14" fill="url(#accent)"/>
+    <path d="M51 108L56 81H68L73 108H51Z" fill="url(#accent)"/>
+  </g>
+  <text x="130" y="79" font-family="Avenir Next, Satoshi, Arial, sans-serif" font-size="58" font-weight="900" letter-spacing="-3" fill="#FFFFFF">Voice</text>
+  <text x="336" y="79" font-family="Avenir Next, Satoshi, Arial, sans-serif" font-size="58" font-weight="900" letter-spacing="-3" fill="url(#idFill)">ID</text>
+</svg>

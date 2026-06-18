@@ -1,0 +1,24 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">VoiceID mark</title>
+  <desc id="desc">A dashed biometric circle with voice bars and a keyhole.</desc>
+  <defs>
+    <linearGradient id="voiceidAccent" x1="16" y1="18" x2="112" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00C6FF"/>
+      <stop offset="0.45" stop-color="#3A7BFF"/>
+      <stop offset="0.75" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#FF5AF7"/>
+    </linearGradient>
+    <linearGradient id="voiceidDark" x1="42" y1="42" x2="88" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B132B"/>
+      <stop offset="1" stop-color="#3A7BFF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="49" stroke="url(#voiceidAccent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="18 13"/>
+  <path d="M38 67V48" stroke="url(#voiceidAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M51 67V36" stroke="url(#voiceidAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M64 67V27" stroke="url(#voiceidAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M77 67V40" stroke="url(#voiceidAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M90 67V51" stroke="url(#voiceidAccent)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="64" cy="78" r="15" fill="url(#voiceidDark)"/>
+  <path d="M52 111L58 86H70L76 111H52Z" fill="url(#voiceidDark)"/>
+</svg>

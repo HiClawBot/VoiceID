@@ -1,0 +1,26 @@
+<svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">VoiceID app icon</title>
+  <desc id="desc">Dark VoiceID app icon with biometric voice mark.</desc>
+  <defs>
+    <linearGradient id="iconBg" x1="28" y1="18" x2="185" y2="206" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B132B"/>
+      <stop offset="1" stop-color="#111C38"/>
+    </linearGradient>
+    <linearGradient id="iconAccent" x1="52" y1="46" x2="171" y2="169" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00C6FF"/>
+      <stop offset="0.48" stop-color="#3A7BFF"/>
+      <stop offset="0.78" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#FF5AF7"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="12" width="196" height="196" rx="42" fill="url(#iconBg)"/>
+  <rect x="12.5" y="12.5" width="195" height="195" rx="41.5" stroke="white" stroke-opacity="0.1"/>
+  <circle cx="110" cy="102" r="58" stroke="url(#iconAccent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="17 13"/>
+  <path d="M78 106V84" stroke="url(#iconAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M94 106V70" stroke="url(#iconAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M110 106V58" stroke="url(#iconAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M126 106V75" stroke="url(#iconAccent)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M142 106V87" stroke="url(#iconAccent)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="110" cy="118" r="17" fill="url(#iconAccent)"/>
+  <path d="M95 165L102 126H118L125 165H95Z" fill="url(#iconAccent)"/>
+</svg>
