@@ -9,6 +9,11 @@ VoiceID 是声纹身份协议官网项目。
 - `script.js`
 - `assets/`
 - `downloads/`
+- `docs/`
+
+## 项目文档
+
+- [VoiceID 开发计划施工文档](docs/VoiceID_开发计划施工文档.md)
 
 ## 本地预览
 
