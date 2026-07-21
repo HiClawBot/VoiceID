@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,7 +29,7 @@ jobs:
           node-version: "22"
 
       - name: Check commit whitespace
-        run: git diff-tree --check --no-commit-id --root -r HEAD
+        run: git diff-tree --check --no-commit-id -r HEAD^ HEAD
 
       - name: Audit pages, links, resources, and safety invariants
         run: python3 scripts/check_site.py
