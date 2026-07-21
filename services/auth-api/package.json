@@ -8,6 +8,7 @@
 		"build": "tsc -p tsconfig.json",
 		"db:migrate": "tsx src/cli/migrate.ts",
 		"db:test:reset": "tsx src/cli/reset-test-db.ts",
+		"invitation:issue": "tsx src/cli/issue-invitation.ts",
 		"dev": "tsx watch src/server.ts",
 		"start": "node dist/server.js",
 		"test": "vitest run",

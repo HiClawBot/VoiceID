@@ -85,6 +85,87 @@ export type CeremonyVerifyResponse = Static<
 	typeof CeremonyVerifyResponseSchema
 >;
 
+export const SecurityConfirmationScopeSchema = Type.Union([
+	Type.Literal("credential_add"),
+	Type.Literal("credential_revoke"),
+	Type.Literal("account_delete"),
+]);
+export type SecurityConfirmationScope = Static<
+	typeof SecurityConfirmationScopeSchema
+>;
+
+export const SecurityConfirmationOptionsRequestSchema = Type.Object(
+	{ scope: SecurityConfirmationScopeSchema },
+	{ additionalProperties: false, $id: "SecurityConfirmationOptionsRequest" },
+);
+export type SecurityConfirmationOptionsRequest = Static<
+	typeof SecurityConfirmationOptionsRequestSchema
+>;
+
+export const SecurityConfirmationVerifyResponseSchema = Type.Object(
+	{
+		confirmed: Type.Literal(true),
+		scope: SecurityConfirmationScopeSchema,
+	},
+	{ additionalProperties: false, $id: "SecurityConfirmationVerifyResponse" },
+);
+export type SecurityConfirmationVerifyResponse = Static<
+	typeof SecurityConfirmationVerifyResponseSchema
+>;
+
+export const CredentialSchema = Type.Object(
+	{
+		id: Type.String({ minLength: 1, maxLength: 1024 }),
+		label: Type.String({ minLength: 1, maxLength: 64 }),
+		deviceType: Type.Union([
+			Type.Literal("singleDevice"),
+			Type.Literal("multiDevice"),
+		]),
+		backedUp: Type.Boolean(),
+		createdAt: DateTimeSchema,
+		lastUsedAt: Type.Union([DateTimeSchema, Type.Null()]),
+	},
+	{ additionalProperties: false, $id: "Credential" },
+);
+export type Credential = Static<typeof CredentialSchema>;
+
+export const CredentialsResponseSchema = Type.Object(
+	{
+		credentials: Type.Array(CredentialSchema),
+		recoveryReady: Type.Boolean(),
+	},
+	{ additionalProperties: false, $id: "CredentialsResponse" },
+);
+export type CredentialsResponse = Static<typeof CredentialsResponseSchema>;
+
+export const CredentialRegistrationVerifyRequestSchema = Type.Object(
+	{
+		label: Type.String({ minLength: 1, maxLength: 64 }),
+		response: Type.Record(Type.String(), Type.Unknown()),
+	},
+	{
+		additionalProperties: false,
+		$id: "CredentialRegistrationVerifyRequest",
+	},
+);
+export type CredentialRegistrationVerifyRequest = Static<
+	typeof CredentialRegistrationVerifyRequestSchema
+>;
+
+export const CredentialRevokeRequestSchema = Type.Object(
+	{ credentialId: Type.String({ minLength: 1, maxLength: 1024 }) },
+	{ additionalProperties: false, $id: "CredentialRevokeRequest" },
+);
+export type CredentialRevokeRequest = Static<
+	typeof CredentialRevokeRequestSchema
+>;
+
+export const AccountDeleteRequestSchema = Type.Object(
+	{ confirmation: Type.Literal("DELETE") },
+	{ additionalProperties: false, $id: "AccountDeleteRequest" },
+);
+export type AccountDeleteRequest = Static<typeof AccountDeleteRequestSchema>;
+
 export const OkResponseSchema = Type.Object(
 	{ ok: Type.Literal(true) },
 	{ additionalProperties: false, $id: "OkResponse" },
@@ -109,6 +190,9 @@ export const ErrorCodeSchema = Type.Union([
 	Type.Literal("CHALLENGE_INVALID"),
 	Type.Literal("PASSKEY_INVALID"),
 	Type.Literal("CREDENTIAL_NOT_FOUND"),
+	Type.Literal("CREDENTIAL_EXISTS"),
+	Type.Literal("LAST_CREDENTIAL"),
+	Type.Literal("CONFIRMATION_REQUIRED"),
 	Type.Literal("SESSION_REQUIRED"),
 	Type.Literal("NOT_READY"),
 	Type.Literal("INTERNAL_ERROR"),

@@ -1,0 +1,71 @@
+name: voiceid-online-beta
+
+services:
+  auth-api:
+    build:
+      context: ..
+      dockerfile: infra/containers/Dockerfile.api
+    environment:
+      NODE_ENV: staging
+      HOST: 0.0.0.0
+      PORT: 3401
+      DATABASE_URL_FILE: /run/secrets/database_url
+      TOKEN_PEPPER_FILE: /run/secrets/token_pepper
+      EXPECTED_ORIGIN: ${EXPECTED_ORIGIN:?Set the exact public HTTPS origin}
+      RP_ID: ${RP_ID:?Set the WebAuthn RP ID}
+      RP_NAME: ${RP_NAME:-VoiceID Online Beta}
+      DATA_REGION: ${DATA_REGION:?Set the approved PostgreSQL data region}
+      COOKIE_SECURE: "true"
+      TRUST_PROXY: 172.28.0.10
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    secrets:
+      - database_url
+      - token_pepper
+    networks:
+      backend:
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/containers/Dockerfile.web
+    environment:
+      AUTH_API_UPSTREAM: auth-api:3401
+    depends_on:
+      auth-api:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /config:size=8m,mode=0777
+      - /data:size=8m,mode=0777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${EDGE_PORT:-8080}:8080"
+    networks:
+      backend:
+        ipv4_address: 172.28.0.10
+      edge:
+
+secrets:
+  database_url:
+    file: ${DATABASE_URL_SECRET_FILE:?Set the path to a PostgreSQL URL secret}
+  token_pepper:
+    file: ${TOKEN_PEPPER_SECRET_FILE:?Set the path to a 32+ character pepper secret}
+
+networks:
+  backend:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+  edge:

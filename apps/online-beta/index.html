@@ -24,7 +24,7 @@
 
     <main>
       <section class="hero" aria-labelledby="page-title">
-        <p class="eyebrow">PASSKEY FOUNDATION / SPRINT 1</p>
+		<p class="eyebrow">PASSKEY FOUNDATION / SPRINT 1.5</p>
         <h1 id="page-title">A real session.<br />No voice data.</h1>
         <p class="lede">
           This isolated beta uses a device Passkey and a server-owned session. It does not collect voice samples,
@@ -77,15 +77,53 @@
         <p class="eyebrow">AUTHENTICATED SERVER SESSION</p>
         <h2 id="session-title">Session active</h2>
         <dl>
-          <div><dt>Account</dt><dd id="session-user">—</dd></div>
-          <div><dt>Assurance</dt><dd id="session-assurance">—</dd></div>
-          <div><dt>Idle expiry</dt><dd id="session-idle">—</dd></div>
-          <div><dt>Absolute expiry</dt><dd id="session-absolute">—</dd></div>
+			<div class="session-detail"><dt>Account</dt><dd id="session-user">—</dd></div>
+			<div class="session-detail"><dt>Assurance</dt><dd id="session-assurance">—</dd></div>
+			<div class="session-detail"><dt>Idle expiry</dt><dd id="session-idle">—</dd></div>
+			<div class="session-detail"><dt>Absolute expiry</dt><dd id="session-absolute">—</dd></div>
         </dl>
         <div class="actions">
           <button id="logout-button" type="button">Log out this session</button>
           <button id="revoke-button" class="button-secondary" type="button">Revoke all sessions</button>
         </div>
+
+		<section class="security-management" aria-labelledby="passkeys-title">
+			<div class="section-heading">
+				<div>
+					<p class="eyebrow">ACCOUNT RECOVERY</p>
+					<h2 id="passkeys-title">Your Passkeys</h2>
+				</div>
+				<p id="recovery-status" class="recovery-status">Checking recovery readiness…</p>
+			</div>
+			<p>
+				A second Passkey is the only recovery path in this Beta. There is no email, SMS, PIN,
+				recovery phrase, or support bypass.
+			</p>
+			<ul id="credential-list" class="credential-list" aria-label="Active Passkeys"></ul>
+			<form id="add-credential-form" class="inline-form">
+				<label for="credential-label">New Passkey label</label>
+				<div>
+					<input id="credential-label" name="credentialLabel" value="Backup Passkey" minlength="1" maxlength="64" required />
+					<button id="add-credential-button" type="submit">Add a Passkey</button>
+				</div>
+			</form>
+		</section>
+
+		<section class="danger-zone" aria-labelledby="delete-title">
+			<p class="eyebrow">IRREVERSIBLE</p>
+			<h2 id="delete-title">Delete account</h2>
+			<p>
+				Deletion revokes every Passkey and session, withdraws consent, and minimizes the account profile.
+				Retained allowlisted audit evidence follows the operator retention policy.
+			</p>
+			<form id="delete-account-form" class="inline-form">
+				<label for="delete-confirmation">Type DELETE to continue</label>
+				<div>
+					<input id="delete-confirmation" name="deleteConfirmation" autocomplete="off" pattern="DELETE" required />
+					<button id="delete-account-button" class="button-danger" type="submit">Delete account</button>
+				</div>
+			</form>
+		</section>
       </section>
 
       <aside class="boundary" aria-labelledby="boundary-title">
@@ -99,8 +137,8 @@
     </main>
 
     <footer>
-      <span>VOICEID ONLINE BETA / AUTH SKELETON</span>
-      <a href="/docs/">Security and protocol docs</a>
+      <span>VOICEID ONLINE BETA / STAGING CANDIDATE</span>
+		<a href="/openapi.json">OpenAPI contract</a>
     </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>

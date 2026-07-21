@@ -291,7 +291,7 @@ button:disabled {
 	border-left: 1px solid var(--line);
 }
 
-.session-panel dl div {
+.session-detail {
 	padding: 1rem;
 	border-right: 1px solid var(--line);
 	border-bottom: 1px solid var(--line);
@@ -314,6 +314,100 @@ dd {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.75rem;
+}
+
+.security-management,
+.danger-zone {
+	margin-top: 3rem;
+	padding-top: 2rem;
+	border-top: 1px solid var(--line);
+}
+
+.section-heading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.recovery-status {
+	padding: 0.45rem 0.65rem;
+	color: #5e2020;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.72rem;
+	font-weight: 800;
+	background: #f3dddd;
+	border: 1px solid var(--red);
+}
+
+.recovery-status[data-ready="true"] {
+	color: #123e33;
+	background: #dcece4;
+	border-color: var(--green);
+}
+
+.credential-list {
+	display: grid;
+	padding: 0;
+	margin: 1.5rem 0;
+	border-top: 1px solid var(--ink);
+	list-style: none;
+}
+
+.credential-list li {
+	display: grid;
+	grid-template-columns: minmax(150px, 1fr) minmax(180px, 1fr) auto;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.85rem 0;
+	border-bottom: 1px solid var(--line);
+}
+
+.credential-list strong,
+.credential-list span {
+	overflow-wrap: anywhere;
+}
+
+.credential-list span {
+	color: var(--ink-soft);
+	font-size: 0.78rem;
+}
+
+.credential-list button,
+.inline-form button {
+	margin-top: 0;
+}
+
+.credential-list button {
+	min-height: 40px;
+	padding: 0.5rem 0.75rem;
+	color: var(--red);
+	background: transparent;
+	border-color: var(--red);
+}
+
+.credential-list button:disabled {
+	cursor: not-allowed;
+}
+
+.inline-form {
+	margin-top: 1.5rem;
+}
+
+.inline-form > div {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: end;
+	gap: 1rem;
+}
+
+.danger-zone {
+	color: #5e2020;
+}
+
+.button-danger {
+	background: var(--red);
+	border-color: var(--red);
 }
 
 .button-secondary {
@@ -365,8 +459,15 @@ footer a {
 	.truth-strip,
 	.workspace,
 	.session-panel dl,
+	.credential-list li,
+	.inline-form > div,
 	.boundary {
 		grid-template-columns: 1fr;
+	}
+
+	.section-heading {
+		align-items: flex-start;
+		flex-direction: column;
 	}
 
 	.truth-strip li {

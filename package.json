@@ -21,6 +21,7 @@
 		"dev:api": "npm run dev -w @voiceid/auth-api",
 		"dev:web": "npm run dev -w @voiceid/online-beta",
 		"e2e": "npm run e2e -w @voiceid/online-beta",
+		"invitation:issue": "npm run invitation:issue -w @voiceid/auth-api --",
 		"format": "biome format --write package.json tsconfig.base.json biome.json packages/contracts services/auth-api apps/online-beta",
 		"lint": "biome lint package.json tsconfig.base.json biome.json packages/contracts services/auth-api apps/online-beta",
 		"test": "npm run test -w @voiceid/auth-api",

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 export type RuntimeEnvironment =
 	| "development"
 	| "test"
@@ -13,10 +15,13 @@ export interface AppConfig {
 	rpId: string;
 	rpName: string;
 	tokenPepper: string;
+	dataRegion?: string;
+	trustProxy?: string[];
 	cookieSecure: boolean;
 	devInviteCode?: string;
 	challengeTtlMs: number;
 	registrationIntentTtlMs: number;
+	securityConfirmationTtlMs: number;
 	sessionIdleTtlMs: number;
 	sessionAbsoluteTtlMs: number;
 }
@@ -33,6 +38,25 @@ function required(
 		throw new Error(`${key} is required`);
 	}
 	return value;
+}
+
+function requiredSecret(
+	env: NodeJS.ProcessEnv,
+	key: "DATABASE_URL" | "TOKEN_PEPPER",
+	fallback?: string,
+): string {
+	const fileKey = `${key}_FILE`;
+	const directValue = env[key];
+	const filePath = env[fileKey];
+	if (directValue && filePath) {
+		throw new Error(`${key} and ${fileKey} cannot both be set`);
+	}
+	if (filePath) {
+		const value = readFileSync(filePath, "utf8").trim();
+		if (!value) throw new Error(`${fileKey} must not be empty`);
+		return value;
+	}
+	return required(env, key, fallback);
 }
 
 function parseEnvironment(value: string | undefined): RuntimeEnvironment {
@@ -77,6 +101,14 @@ function validateOrigin(originValue: string, rpId: string): URL {
 	return origin;
 }
 
+function parseDatabaseUrl(value: string): URL {
+	try {
+		return new URL(value);
+	} catch {
+		throw new Error(`DATABASE_URL must be a valid PostgreSQL URL`);
+	}
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 	const environment = parseEnvironment(env.NODE_ENV);
 	const rpId = required(env, "RP_ID", "localhost");
@@ -85,20 +117,20 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 		"EXPECTED_ORIGIN",
 		"http://localhost:5173",
 	);
-	const tokenPepper = required(env, "TOKEN_PEPPER", DEV_PEPPER);
+	const tokenPepper = requiredSecret(env, "TOKEN_PEPPER", DEV_PEPPER);
 	const cookieSecure = parseBoolean(
 		env.COOKIE_SECURE,
 		environment !== "development" && environment !== "test",
 	);
 	const origin = validateOrigin(expectedOrigin, rpId);
-	const databaseUrl = required(
+	const databaseUrl = requiredSecret(
 		env,
 		"DATABASE_URL",
 		"postgres://localhost/voiceid_dev",
 	);
-	const databaseProtocol = new URL(databaseUrl).protocol;
+	const database = parseDatabaseUrl(databaseUrl);
 
-	if (databaseProtocol !== "postgres:" && databaseProtocol !== "postgresql:") {
+	if (database.protocol !== "postgres:" && database.protocol !== "postgresql:") {
 		throw new Error(`DATABASE_URL must use postgres:// or postgresql://`);
 	}
 	if (tokenPepper.length < 32) {
@@ -120,6 +152,28 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 		if (tokenPepper === DEV_PEPPER || tokenPepper.includes("dev-only")) {
 			throw new Error(`Deployed TOKEN_PEPPER cannot use a development value`);
 		}
+		if (["localhost", "127.0.0.1", "::1"].includes(database.hostname)) {
+			throw new Error(`Deployed DATABASE_URL cannot use a loopback host`);
+		}
+		if (database.searchParams.get("sslmode") !== "verify-full") {
+			throw new Error(`Deployed DATABASE_URL must set sslmode=verify-full`);
+		}
+		if (!env.DATA_REGION?.trim()) {
+			throw new Error(`DATA_REGION is required in deployed environments`);
+		}
+		const trustProxy = env.TRUST_PROXY?.split(",")
+			.map((value) => value.trim())
+			.filter(Boolean);
+		if (!trustProxy?.length) {
+			throw new Error(`TRUST_PROXY is required in deployed environments`);
+		}
+		if (
+			trustProxy.some((value) =>
+				["true", "*", "0.0.0.0/0", "::/0"].includes(value),
+			)
+		) {
+			throw new Error(`TRUST_PROXY cannot trust every source`);
+		}
 	}
 
 	const config: AppConfig = {
@@ -134,9 +188,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 		cookieSecure,
 		challengeTtlMs: 5 * 60 * 1000,
 		registrationIntentTtlMs: 10 * 60 * 1000,
+		securityConfirmationTtlMs: 5 * 60 * 1000,
 		sessionIdleTtlMs: 15 * 60 * 1000,
 		sessionAbsoluteTtlMs: 8 * 60 * 60 * 1000,
 	};
+	if (env.DATA_REGION?.trim()) config.dataRegion = env.DATA_REGION.trim();
+	const trustProxy = env.TRUST_PROXY?.split(",")
+		.map((value) => value.trim())
+		.filter(Boolean);
+	if (trustProxy?.length) config.trustProxy = trustProxy;
 	if (env.DEV_INVITE_CODE) config.devInviteCode = env.DEV_INVITE_CODE;
 	return config;
 }
