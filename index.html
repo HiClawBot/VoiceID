@@ -10,7 +10,7 @@
     />
     <meta name="theme-color" content="#0B132B" />
     <meta property="og:title" content="VoiceID - 声纹身份协议" />
-    <meta property="og:description" content="声纹识别、去中心化、多链钱包。你的声音就是你的身份。" />
+    <meta property="og:description" content="VoiceID 声纹身份协议愿景与 Browser Playground。当前实现仅用于本地流程演示。" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="assets/voiceid-logo.svg" />
     <link rel="icon" href="assets/voiceid-mark.svg" type="image/svg+xml" />
@@ -28,6 +28,8 @@
           <a href="#protocol">协议能力</a>
           <a href="#wallet">身份钱包</a>
           <a href="#developers">开发者</a>
+          <a class="mobile-core-link" href="beta/">Playground</a>
+          <a class="mobile-core-link" href="docs/">文档</a>
           <a href="#brand">品牌视觉</a>
         </div>
         <div class="nav-actions">
@@ -45,29 +47,36 @@
             <img class="hero-logo" src="assets/voiceid-logo-cn.svg" alt="VoiceID，你的声音就是你的身份" />
             <h1 id="hero-title">你的声音就是你的身份</h1>
             <p class="hero-copy">
-              把声音变成可验证身份钥匙，连接网页登录、多链钱包和去中心化身份。你的声音是入口，你的身份由你掌控。
+              VoiceID 探索把声音、钱包凭证与去中心化身份组织成可审计协议。当前公开实现是本地 Playground，不提供真实声纹识别或服务端认证。
             </p>
+            <p class="implementation-status"><strong>当前实现</strong> Browser Playground v0.1 · demo-only · serverVerified = false</p>
             <div class="hero-actions" aria-label="主要操作">
-              <a class="button button-primary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">
-                查看仓库
+              <a class="button button-primary" href="beta/">
+                体验 Playground
               </a>
               <a class="button button-secondary" href="downloads/VoiceID_Protocol_Whitepaper_v0.1_CN.pdf">
                 下载白皮书
               </a>
+              <a class="button button-tertiary" href="docs/">
+                阅读文档
+              </a>
+              <a class="button button-tertiary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">
+                查看仓库
+              </a>
             </div>
             <dl class="hero-facts" aria-label="VoiceID 特性">
               <div>
-              <dt>声纹证明</dt>
-              <dd>声纹识别</dd>
-            </div>
-            <div>
-              <dt>自主管理</dt>
-              <dd>去中心化</dd>
-            </div>
-            <div>
-              <dt>多链身份</dt>
-              <dd>多链钱包</dd>
-            </div>
+                <dt>声纹证明</dt>
+                <dd>实验性方向</dd>
+              </div>
+              <div>
+                <dt>自主管理</dt>
+                <dd>去中心化</dd>
+              </div>
+              <div>
+                <dt>多链身份</dt>
+                <dd>多链钱包</dd>
+              </div>
             </dl>
           </div>
           <div class="hero-device" aria-hidden="true">
@@ -100,8 +109,8 @@
               <span></span>
               <span></span>
             </div>
-            <h3>声纹识别</h3>
-            <p>在本地或可信边缘环境中完成语音采样和特征验证，避免把原始声音变成中心化资产。</p>
+            <h3>声纹研究方向</h3>
+            <p>目标是在本地或可信边缘环境完成特征验证；当前 Playground 仅计算时长、音量、峰值与削波，不识别说话人。</p>
           </article>
           <article class="protocol-card">
             <svg aria-hidden="true" viewBox="0 0 48 48">
@@ -135,27 +144,27 @@
       <section class="section wallet-section" id="wallet" aria-labelledby="wallet-title">
         <div class="wallet-copy">
           <p class="eyebrow">身份钱包</p>
-          <h2 id="wallet-title">用声音进入钱包，也用声音守住钱包。</h2>
+          <h2 id="wallet-title">用密码学凭证守住钱包，让语音信号按门控接入。</h2>
           <p>
-            品牌视觉中的移动钱包和网页登录形态会成为产品原型基线：声纹登录、密码回退、多链资产和去中心化应用访问在一个身份界面中完成。
+            下面是未来产品界面概念。真实 Online Beta 以 Passkey 或服务端可验证的钱包签名为信任根；语音信号在模型、隐私和攻击测试过门前只做观察。
           </p>
           <ul class="feature-list">
-            <li>本地声纹验证与隐私保护</li>
+            <li>本地音频质量检查与最小化数据处理</li>
             <li>钱包私钥、密码与恢复路径并行设计</li>
             <li>面向去中心化应用的统一认证入口</li>
           </ul>
         </div>
-        <div class="product-stage" aria-label="VoiceID 产品界面示意">
+        <div class="product-stage" aria-label="VoiceID 未来产品界面概念">
           <div class="phone-mock" aria-hidden="true">
             <div class="phone-top">9:41</div>
             <img src="assets/voiceid-mark.svg" alt="" />
             <strong>Voice<span>ID</span></strong>
-            <p>用声音解锁你的身份</p>
+            <p>未来身份验证界面概念</p>
             <div class="voice-code">123456789</div>
             <div class="wave-row">
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </div>
-            <small>正在识别声纹...</small>
+            <small>未来验证界面概念</small>
           </div>
           <div class="login-panel" aria-hidden="true">
             <img src="assets/voiceid-mark.svg" alt="" />
@@ -181,8 +190,8 @@
           <ol class="steps-list">
             <li>
               <span>01</span>
-              <strong>创建声纹证明</strong>
-              <p>应用请求用户发起声纹验证，客户端生成最小化证明。</p>
+              <strong>创建演示证明</strong>
+              <p>当前客户端只根据基础音频质量生成 demo-only 证明。</p>
             </li>
             <li>
               <span>02</span>
@@ -197,8 +206,8 @@
           </ol>
           <div class="code-panel">
             <div class="code-head">
-              <span>接口示意</span>
-              <button type="button" data-copy-code>复制</button>
+              <span>未来接口示意 · 当前不可执行</span>
+              <button type="button" data-copy-code aria-live="polite">复制</button>
             </div>
             <pre><code>连接网络：测试网络
 钱包类型：多链钱包
@@ -242,7 +251,9 @@
           <h2 id="cta-title">把 VoiceID 项目从协议文档推进到可验证实现。</h2>
         </div>
         <div class="cta-actions">
-          <a class="button button-primary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">打开代码仓库</a>
+          <a class="button button-primary" href="beta/">体验 Playground</a>
+          <a class="button button-secondary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">打开代码仓库</a>
+          <a class="button button-secondary" href="docs/">阅读文档</a>
           <a class="button button-secondary" href="#top">回到顶部</a>
         </div>
       </section>
@@ -255,6 +266,8 @@
       </a>
       <p>声纹身份协议 · 去中心化 · 多链钱包 · 你即是你的身份</p>
       <a href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">github.com/HiClawBot/VoiceID</a>
+      <a href="beta/">Browser Playground</a>
+      <a href="docs/">文档中心</a>
     </footer>
 
     <script src="script.js"></script>
