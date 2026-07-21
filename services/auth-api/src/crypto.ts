@@ -4,6 +4,7 @@ export type HashPurpose =
 	| "challenge"
 	| "flow"
 	| "invitation"
+	| "confirmation"
 	| "registration"
 	| "session";
 

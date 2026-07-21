@@ -4,17 +4,26 @@ import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import {
+	AccountDeleteRequestSchema,
 	CeremonyOptionsResponseSchema,
 	CeremonyVerifyRequestSchema,
 	CeremonyVerifyResponseSchema,
+	CredentialRegistrationVerifyRequestSchema,
+	CredentialRevokeRequestSchema,
+	CredentialsResponseSchema,
 	ErrorResponseSchema,
 	HealthResponseSchema,
 	InvitationRedeemRequestSchema,
 	InvitationRedeemResponseSchema,
 	OkResponseSchema,
+	SecurityConfirmationOptionsRequestSchema,
+	SecurityConfirmationVerifyResponseSchema,
 	SessionStateSchema,
+	type CredentialRegistrationVerifyRequest,
+	type CredentialRevokeRequest,
 	type CeremonyVerifyRequest,
 	type InvitationRedeemRequest,
+	type SecurityConfirmationOptionsRequest,
 } from "@voiceid/contracts";
 import Fastify, {
 	LogController,
@@ -49,6 +58,7 @@ function cookieOptions(config: AppConfig, maxAgeSeconds: number) {
 function clearAuthCookies(reply: FastifyReply, config: AppConfig): void {
 	const options = cookieOptions(config, 0);
 	reply.clearCookie(COOKIE_NAMES.flow, options);
+	reply.clearCookie(COOKIE_NAMES.confirmation, options);
 	reply.clearCookie(COOKIE_NAMES.registration, options);
 	reply.clearCookie(COOKIE_NAMES.session, options);
 }
@@ -57,6 +67,7 @@ export async function buildApp(options: BuildAppOptions) {
 	const { config, repository } = options;
 	const app = Fastify({
 		logger: options.logger ?? false,
+		...(config.trustProxy ? { trustProxy: config.trustProxy } : {}),
 		genReqId: () => randomUUID(),
 		logController: new LogController({ disableRequestLogging: true }),
 	});
@@ -301,6 +312,179 @@ export async function buildApp(options: BuildAppOptions) {
 			);
 			reply.clearCookie(COOKIE_NAMES.flow, cookieOptions(config, 0));
 			return { verified: true as const, session: result.session };
+		},
+	});
+
+	app.get("/v1/credentials", {
+		schema: {
+			response: {
+				200: CredentialsResponseSchema,
+				401: ErrorResponseSchema,
+			},
+		},
+		handler: async (request) =>
+			auth.credentials(request.cookies[COOKIE_NAMES.session]),
+	});
+
+	app.post("/v1/security-confirmation/options", {
+		config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
+		schema: {
+			body: SecurityConfirmationOptionsRequestSchema,
+			response: {
+				200: CeremonyOptionsResponseSchema,
+				401: ErrorResponseSchema,
+				409: ErrorResponseSchema,
+			},
+		},
+		handler: async (request, reply) => {
+			const body = request.body as SecurityConfirmationOptionsRequest;
+			const result = await auth.securityConfirmationOptions(
+				request.cookies[COOKIE_NAMES.session],
+				body.scope,
+			);
+			reply.clearCookie(COOKIE_NAMES.confirmation, cookieOptions(config, 0));
+			reply.setCookie(
+				COOKIE_NAMES.flow,
+				result.flowToken,
+				cookieOptions(config, config.challengeTtlMs / 1000),
+			);
+			return { options: result.options };
+		},
+	});
+
+	app.post("/v1/security-confirmation/verify", {
+		config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
+		schema: {
+			body: CeremonyVerifyRequestSchema,
+			response: {
+				200: SecurityConfirmationVerifyResponseSchema,
+				400: ErrorResponseSchema,
+				401: ErrorResponseSchema,
+			},
+		},
+		handler: async (request, reply) => {
+			const flowToken = request.cookies[COOKIE_NAMES.flow];
+			if (!flowToken) {
+				throw new AppError(
+					"FLOW_REQUIRED",
+					400,
+					"The security confirmation flow is missing",
+				);
+			}
+			const result = await auth.verifySecurityConfirmation({
+				rawSessionToken: request.cookies[COOKIE_NAMES.session],
+				flowToken,
+				response: (request.body as CeremonyVerifyRequest).response,
+				requestId: request.id,
+			});
+			reply.clearCookie(COOKIE_NAMES.flow, cookieOptions(config, 0));
+			reply.setCookie(
+				COOKIE_NAMES.confirmation,
+				result.confirmationToken,
+				cookieOptions(config, config.securityConfirmationTtlMs / 1000),
+			);
+			return { confirmed: true as const, scope: result.scope };
+		},
+	});
+
+	app.post("/v1/webauthn/credentials/options", {
+		config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
+		schema: {
+			response: {
+				200: CeremonyOptionsResponseSchema,
+				401: ErrorResponseSchema,
+				403: ErrorResponseSchema,
+			},
+		},
+		handler: async (request, reply) => {
+			const result = await auth.credentialAdditionOptions(
+				request.cookies[COOKIE_NAMES.session],
+				request.cookies[COOKIE_NAMES.confirmation],
+			);
+			reply.clearCookie(COOKIE_NAMES.confirmation, cookieOptions(config, 0));
+			reply.setCookie(
+				COOKIE_NAMES.flow,
+				result.flowToken,
+				cookieOptions(config, config.challengeTtlMs / 1000),
+			);
+			return { options: result.options };
+		},
+	});
+
+	app.post("/v1/webauthn/credentials/verify", {
+		config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
+		schema: {
+			body: CredentialRegistrationVerifyRequestSchema,
+			response: {
+				200: CredentialsResponseSchema,
+				400: ErrorResponseSchema,
+				401: ErrorResponseSchema,
+				409: ErrorResponseSchema,
+			},
+		},
+		handler: async (request, reply) => {
+			const flowToken = request.cookies[COOKIE_NAMES.flow];
+			if (!flowToken) {
+				throw new AppError(
+					"FLOW_REQUIRED",
+					400,
+					"The Passkey addition flow is missing",
+				);
+			}
+			const body = request.body as CredentialRegistrationVerifyRequest;
+			const result = await auth.verifyCredentialAddition({
+				rawSessionToken: request.cookies[COOKIE_NAMES.session],
+				flowToken,
+				label: body.label,
+				response: body.response,
+				requestId: request.id,
+			});
+			reply.clearCookie(COOKIE_NAMES.flow, cookieOptions(config, 0));
+			return result;
+		},
+	});
+
+	app.delete("/v1/credentials", {
+		schema: {
+			body: CredentialRevokeRequestSchema,
+			response: {
+				200: OkResponseSchema,
+				401: ErrorResponseSchema,
+				403: ErrorResponseSchema,
+				404: ErrorResponseSchema,
+				409: ErrorResponseSchema,
+			},
+		},
+		handler: async (request, reply) => {
+			const body = request.body as CredentialRevokeRequest;
+			await auth.revokeCredential({
+				rawSessionToken: request.cookies[COOKIE_NAMES.session],
+				rawConfirmationToken: request.cookies[COOKIE_NAMES.confirmation],
+				credentialId: body.credentialId,
+				requestId: request.id,
+			});
+			clearAuthCookies(reply, config);
+			return { ok: true as const };
+		},
+	});
+
+	app.delete("/v1/account", {
+		schema: {
+			body: AccountDeleteRequestSchema,
+			response: {
+				200: OkResponseSchema,
+				401: ErrorResponseSchema,
+				403: ErrorResponseSchema,
+			},
+		},
+		handler: async (request, reply) => {
+			await auth.deleteAccount({
+				rawSessionToken: request.cookies[COOKIE_NAMES.session],
+				rawConfirmationToken: request.cookies[COOKIE_NAMES.confirmation],
+				requestId: request.id,
+			});
+			clearAuthCookies(reply, config);
+			return { ok: true as const };
 		},
 	});
 

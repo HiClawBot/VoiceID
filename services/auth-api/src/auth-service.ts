@@ -10,7 +10,10 @@ import {
 	type RegistrationResponseJSON,
 } from "@simplewebauthn/server";
 import type {
+	Credential,
+	CredentialsResponse,
 	InvitationRedeemResponse,
+	SecurityConfirmationScope,
 	Session,
 	SessionState,
 } from "@voiceid/contracts";
@@ -27,6 +30,7 @@ import type {
 
 export const COOKIE_NAMES = {
 	flow: "voiceid_flow",
+	confirmation: "voiceid_confirmation",
 	registration: "voiceid_registration",
 	session: "voiceid_session",
 } as const;
@@ -42,6 +46,12 @@ interface CeremonyComplete {
 	sessionToken: string;
 }
 
+interface SecurityConfirmationComplete {
+	confirmed: true;
+	scope: SecurityConfirmationScope;
+	confirmationToken: string;
+}
+
 function cleanDisplayName(value: string): string {
 	const cleaned = value.trim().replace(/\s+/gu, " ");
 	if (cleaned.length < 1 || cleaned.length > 64) {
@@ -49,6 +59,18 @@ function cleanDisplayName(value: string): string {
 			"INVALID_REQUEST",
 			400,
 			"Display name must contain 1 to 64 characters",
+		);
+	}
+	return cleaned;
+}
+
+function cleanCredentialLabel(value: string): string {
+	const cleaned = value.trim().replace(/\s+/gu, " ");
+	if (cleaned.length < 1 || cleaned.length > 64) {
+		throw new AppError(
+			"INVALID_REQUEST",
+			400,
+			"Passkey label must contain 1 to 64 characters",
 		);
 	}
 	return cleaned;
@@ -73,6 +95,17 @@ function publicSession(session: ActiveSession): Session {
 	};
 }
 
+function publicCredential(credential: CredentialRecord): Credential {
+	return {
+		id: credential.id,
+		label: credential.label,
+		deviceType: credential.deviceType,
+		backedUp: credential.backedUp,
+		createdAt: credential.createdAt.toISOString(),
+		lastUsedAt: credential.lastUsedAt?.toISOString() ?? null,
+	};
+}
+
 export class AuthService {
 	constructor(
 		private readonly config: AppConfig,
@@ -90,6 +123,7 @@ export class AuthService {
 				this.config.tokenPepper,
 			),
 			label: "Local development invitation",
+			issuedBy: "development-bootstrap",
 			expiresAt: new Date(this.now().getTime() + 24 * 60 * 60 * 1000),
 		});
 	}
@@ -233,11 +267,13 @@ export class AuthService {
 		const newCredential: CredentialRecord = {
 			id: credential.id,
 			userId: claimed.user.id,
+			label: "Primary Passkey",
 			publicKey: credential.publicKey,
 			counter: credential.counter,
 			transports: credential.transports ?? [],
 			deviceType: credentialDeviceType,
 			backedUp: credentialBackedUp,
+			createdAt: now,
 		};
 		const { session, rawToken } = this.newSession(claimed.user.id, now);
 		const activeSession = await this.repository.completeRegistration({
@@ -361,6 +397,325 @@ export class AuthService {
 		};
 	}
 
+	async credentials(
+		rawSessionToken: string | undefined,
+	): Promise<CredentialsResponse> {
+		const session = await this.requireSession(rawSessionToken);
+		return this.publicCredentials(
+			await this.repository.listCredentials(session.user.id),
+		);
+	}
+
+	async securityConfirmationOptions(
+		rawSessionToken: string | undefined,
+		scope: SecurityConfirmationScope,
+	): Promise<CeremonyStart<PublicKeyCredentialRequestOptionsJSON>> {
+		const now = this.now();
+		const session = await this.requireSession(rawSessionToken);
+		const credentials = await this.repository.listCredentials(session.user.id);
+		if (credentials.length === 0) {
+			throw new AppError(
+				"CREDENTIAL_NOT_FOUND",
+				409,
+				"No active Passkey can confirm this action",
+			);
+		}
+		const options = await generateAuthenticationOptions({
+			rpID: this.config.rpId,
+			userVerification: "required",
+			allowCredentials: credentials.map((credential) => ({
+				id: credential.id,
+				transports: credential.transports,
+			})),
+		});
+		const flowToken = createOpaqueToken();
+		await this.repository.createChallenge({
+			id: randomUUID(),
+			kind: "security_confirmation",
+			userId: session.user.id,
+			scope,
+			flowTokenHash: hashValue("flow", flowToken, this.config.tokenPepper),
+			challengeHash: hashValue(
+				"challenge",
+				options.challenge,
+				this.config.tokenPepper,
+			),
+			expiresAt: new Date(now.getTime() + this.config.challengeTtlMs),
+		});
+		return { options, flowToken };
+	}
+
+	async verifySecurityConfirmation(input: {
+		rawSessionToken: string | undefined;
+		flowToken: string;
+		response: unknown;
+		requestId?: string;
+	}): Promise<SecurityConfirmationComplete> {
+		const now = this.now();
+		const session = await this.requireSession(input.rawSessionToken);
+		const response = input.response as AuthenticationResponseJSON;
+		if (!response || typeof response.id !== "string") {
+			throw new AppError(
+				"PASSKEY_INVALID",
+				400,
+				"The Passkey response is malformed",
+			);
+		}
+		const claimed = await this.repository.claimSecurityConfirmationChallenge({
+			flowTokenHash: hashValue(
+				"flow",
+				input.flowToken,
+				this.config.tokenPepper,
+			),
+			userId: session.user.id,
+			credentialId: response.id,
+			now,
+		});
+		if (!claimed.credential || !claimed.scope) {
+			throw new AppError(
+				"CREDENTIAL_NOT_FOUND",
+				400,
+				"The Passkey could not confirm this action",
+			);
+		}
+
+		let verification: Awaited<ReturnType<typeof verifyAuthenticationResponse>>;
+		try {
+			verification = await verifyAuthenticationResponse({
+				response,
+				expectedChallenge: (challenge) =>
+					matchesHash(
+						"challenge",
+						challenge,
+						claimed.challengeHash,
+						this.config.tokenPepper,
+					),
+				expectedOrigin: this.config.expectedOrigin,
+				expectedRPID: this.config.rpId,
+				credential: {
+					id: claimed.credential.id,
+					publicKey: claimed.credential.publicKey,
+					counter: claimed.credential.counter,
+					transports: claimed.credential.transports,
+				},
+				requireUserVerification: true,
+			});
+		} catch {
+			throw new AppError(
+				"PASSKEY_INVALID",
+				400,
+				"The Passkey confirmation could not be verified",
+			);
+		}
+		if (!verification.verified) {
+			throw new AppError(
+				"PASSKEY_INVALID",
+				400,
+				"The Passkey confirmation could not be verified",
+			);
+		}
+
+		const confirmationToken = createOpaqueToken();
+		await this.repository.completeSecurityConfirmation({
+			credentialId: claimed.credential.id,
+			expectedCounter: claimed.credential.counter,
+			newCounter: verification.authenticationInfo.newCounter,
+			backedUp: verification.authenticationInfo.credentialBackedUp,
+			confirmation: {
+				id: randomUUID(),
+				tokenHash: hashValue(
+					"confirmation",
+					confirmationToken,
+					this.config.tokenPepper,
+				),
+				userId: session.user.id,
+				scope: claimed.scope,
+				expiresAt: new Date(
+					now.getTime() + this.config.securityConfirmationTtlMs,
+				),
+			},
+			now,
+			...(input.requestId ? { requestId: input.requestId } : {}),
+		});
+		return { confirmed: true, scope: claimed.scope, confirmationToken };
+	}
+
+	async credentialAdditionOptions(
+		rawSessionToken: string | undefined,
+		rawConfirmationToken: string | undefined,
+	): Promise<CeremonyStart<PublicKeyCredentialCreationOptionsJSON>> {
+		if (!rawConfirmationToken) {
+			throw new AppError(
+				"CONFIRMATION_REQUIRED",
+				403,
+				"Confirm this action with an active Passkey",
+			);
+		}
+		const now = this.now();
+		const session = await this.requireSession(rawSessionToken);
+		const prepared = await this.repository.prepareCredentialAddition({
+			userId: session.user.id,
+			confirmationHash: hashValue(
+				"confirmation",
+				rawConfirmationToken,
+				this.config.tokenPepper,
+			),
+			now,
+		});
+		const options = await generateRegistrationOptions({
+			rpName: this.config.rpName,
+			rpID: this.config.rpId,
+			userID: prepared.user.webauthnUserId,
+			userName: prepared.user.displayName,
+			userDisplayName: prepared.user.displayName,
+			attestationType: "none",
+			authenticatorSelection: {
+				residentKey: "required",
+				userVerification: "required",
+			},
+			excludeCredentials: prepared.credentials.map((credential) => ({
+				id: credential.id,
+				transports: credential.transports,
+			})),
+			supportedAlgorithmIDs: [-7, -257],
+		});
+		const flowToken = createOpaqueToken();
+		await this.repository.createChallenge({
+			id: randomUUID(),
+			kind: "credential_addition",
+			userId: session.user.id,
+			flowTokenHash: hashValue("flow", flowToken, this.config.tokenPepper),
+			challengeHash: hashValue(
+				"challenge",
+				options.challenge,
+				this.config.tokenPepper,
+			),
+			expiresAt: new Date(now.getTime() + this.config.challengeTtlMs),
+		});
+		return { options, flowToken };
+	}
+
+	async verifyCredentialAddition(input: {
+		rawSessionToken: string | undefined;
+		flowToken: string;
+		label: string;
+		response: unknown;
+		requestId?: string;
+	}): Promise<CredentialsResponse> {
+		const now = this.now();
+		const session = await this.requireSession(input.rawSessionToken);
+		const claimed = await this.repository.claimCredentialAdditionChallenge({
+			flowTokenHash: hashValue(
+				"flow",
+				input.flowToken,
+				this.config.tokenPepper,
+			),
+			userId: session.user.id,
+			now,
+		});
+		let verification: Awaited<ReturnType<typeof verifyRegistrationResponse>>;
+		try {
+			verification = await verifyRegistrationResponse({
+				response: input.response as RegistrationResponseJSON,
+				expectedChallenge: (challenge) =>
+					matchesHash(
+						"challenge",
+						challenge,
+						claimed.challengeHash,
+						this.config.tokenPepper,
+					),
+				expectedOrigin: this.config.expectedOrigin,
+				expectedRPID: this.config.rpId,
+				requireUserVerification: true,
+			});
+		} catch {
+			throw new AppError(
+				"PASSKEY_INVALID",
+				400,
+				"The new Passkey could not be verified",
+			);
+		}
+		if (!verification.verified || !verification.registrationInfo) {
+			throw new AppError(
+				"PASSKEY_INVALID",
+				400,
+				"The new Passkey could not be verified",
+			);
+		}
+		const { credential, credentialDeviceType, credentialBackedUp } =
+			verification.registrationInfo;
+		await this.repository.completeCredentialAddition({
+			credential: {
+				id: credential.id,
+				userId: claimed.user.id,
+				label: cleanCredentialLabel(input.label),
+				publicKey: credential.publicKey,
+				counter: credential.counter,
+				transports: credential.transports ?? [],
+				deviceType: credentialDeviceType,
+				backedUp: credentialBackedUp,
+				createdAt: now,
+			},
+			now,
+			...(input.requestId ? { requestId: input.requestId } : {}),
+		});
+		return this.publicCredentials(
+			await this.repository.listCredentials(session.user.id),
+		);
+	}
+
+	async revokeCredential(input: {
+		rawSessionToken: string | undefined;
+		rawConfirmationToken: string | undefined;
+		credentialId: string;
+		requestId?: string;
+	}): Promise<void> {
+		if (!input.rawConfirmationToken) {
+			throw new AppError(
+				"CONFIRMATION_REQUIRED",
+				403,
+				"Confirm this action with an active Passkey",
+			);
+		}
+		const session = await this.requireSession(input.rawSessionToken);
+		await this.repository.revokeCredential({
+			userId: session.user.id,
+			credentialId: input.credentialId,
+			confirmationHash: hashValue(
+				"confirmation",
+				input.rawConfirmationToken,
+				this.config.tokenPepper,
+			),
+			now: this.now(),
+			...(input.requestId ? { requestId: input.requestId } : {}),
+		});
+	}
+
+	async deleteAccount(input: {
+		rawSessionToken: string | undefined;
+		rawConfirmationToken: string | undefined;
+		requestId?: string;
+	}): Promise<void> {
+		if (!input.rawConfirmationToken) {
+			throw new AppError(
+				"CONFIRMATION_REQUIRED",
+				403,
+				"Confirm account deletion with an active Passkey",
+			);
+		}
+		const session = await this.requireSession(input.rawSessionToken);
+		await this.repository.deleteAccount({
+			userId: session.user.id,
+			confirmationHash: hashValue(
+				"confirmation",
+				input.rawConfirmationToken,
+				this.config.tokenPepper,
+			),
+			now: this.now(),
+			...(input.requestId ? { requestId: input.requestId } : {}),
+		});
+	}
+
 	async sessionState(rawToken: string | undefined): Promise<SessionState> {
 		if (!rawToken) return { authenticated: false };
 		const now = this.now();
@@ -442,6 +797,15 @@ export class AuthService {
 				),
 				absoluteExpiresAt,
 			},
+		};
+	}
+
+	private publicCredentials(
+		credentials: CredentialRecord[],
+	): CredentialsResponse {
+		return {
+			credentials: credentials.map(publicCredential),
+			recoveryReady: credentials.length >= 2,
 		};
 	}
 }

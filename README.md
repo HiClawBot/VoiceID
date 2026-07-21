@@ -5,7 +5,7 @@ VoiceID 是声纹身份协议官网项目。
 当前有两个严格隔离的可运行产物：
 
 - **Browser Playground v0.1**：公网静态演示，只展示随机挑战、浏览器音频质量、模拟 `VoiceProof`、测试钱包签名和本地会话；不识别真实说话人，也不提供服务端认证。
-- **Online Beta Auth Skeleton v0.2**：本地/测试环境的真实 Passkey 注册、登录、刷新恢复、退出和撤销闭环，使用 Fastify、PostgreSQL、WebAuthn 与 `HttpOnly` 会话；当前未部署生产，也不收集声音或连接钱包。
+- **Online Beta Staging Candidate v0.2**：真实 Passkey 注册/登录、第二 Passkey 恢复、凭证撤销、账户删除和 `HttpOnly` 会话闭环，提供 PostgreSQL、同源容器与 CI 验证；当前未部署生产，也不收集声音或连接钱包。
 
 真实 Online Beta 的目标架构、质量门与未完成的生产前置见施工计划。
 
@@ -31,6 +31,7 @@ VoiceID 是声纹身份协议官网项目。
 - [VoiceID Beta 验收清单](docs/VoiceID_Beta_验收清单.md)
 - [Browser Playground v0.1 Release Notes](docs/RELEASE_v0.1_Playground.md)
 - [Online Beta Auth Skeleton v0.2 Release Notes](docs/RELEASE_v0.2_Auth_Skeleton.md)
+- [Online Beta 预发运行手册](docs/ONLINE_BETA_STAGING_RUNBOOK.md)
 
 ## 本地预览
 
@@ -85,8 +86,8 @@ TEST_DATABASE_URL=postgres://localhost/voiceid_test npm run check
 npm run e2e
 ```
 
-E2E 会先重置且仅允许重置名称以 `_test` 结尾的测试数据库，再使用 Chrome/Chromium 虚拟认证器验证注册、服务端会话恢复、退出、再次登录、重放拒绝、全会话撤销和 Origin 拒绝。
+E2E 会先重置且仅允许重置名称以 `_test` 结尾的测试数据库，再使用两个 Chrome/Chromium 虚拟认证器验证注册、第二 Passkey、服务端会话恢复、重放拒绝、全会话撤销、凭证撤销、账户删除和 Origin 拒绝。
 
 ## 生产部署门槛
 
-Auth Skeleton 不是生产发布批准。生产启动会拒绝 localhost、HTTP origin、非 Secure Cookie、开发 pepper 和开发邀请；正式部署还必须冻结并审查实际域名/RP ID、同源代理、数据库区域与备份、secret manager、邀请地区、保留/删除策略、可观测性、回滚和独立安全审查。声音、钱包、SIWE、主网和生物数据处理均不在本版本范围内。
+Staging Candidate 不是生产发布批准。部署环境启动会拒绝 localhost/HTTP origin、非 Secure Cookie、未验证 TLS 的数据库、缺失数据区域、trust-all proxy、开发 pepper 和开发邀请；正式部署还必须冻结并审查实际域名/RP ID、数据库区域与备份、secret manager、邀请地区、审计保留、可观测性、回滚和独立安全审查。声音、钱包、SIWE、主网和生物数据处理均不在本版本范围内。

@@ -3,7 +3,16 @@ import type {
 	CredentialDeviceType,
 } from "@simplewebauthn/server";
 
-export type ChallengeKind = "registration" | "authentication";
+export type ChallengeKind =
+	| "registration"
+	| "authentication"
+	| "credential_addition"
+	| "security_confirmation";
+
+export type SecurityConfirmationScope =
+	| "credential_add"
+	| "credential_revoke"
+	| "account_delete";
 
 export interface UserRecord {
 	id: string;
@@ -16,17 +25,21 @@ export interface UserRecord {
 export interface CredentialRecord {
 	id: string;
 	userId: string;
+	label: string;
 	publicKey: Uint8Array<ArrayBuffer>;
 	counter: number;
 	transports: AuthenticatorTransportFuture[];
 	deviceType: CredentialDeviceType;
 	backedUp: boolean;
+	createdAt: Date;
+	lastUsedAt?: Date;
 }
 
 export interface ClaimedChallenge {
 	challengeHash: Uint8Array;
 	user: UserRecord;
 	credential?: CredentialRecord;
+	scope?: SecurityConfirmationScope;
 }
 
 export interface NewSession {
@@ -35,6 +48,14 @@ export interface NewSession {
 	userId: string;
 	idleExpiresAt: Date;
 	absoluteExpiresAt: Date;
+}
+
+export interface NewSecurityConfirmation {
+	id: string;
+	tokenHash: Uint8Array;
+	userId: string;
+	scope: SecurityConfirmationScope;
+	expiresAt: Date;
 }
 
 export interface ActiveSession {

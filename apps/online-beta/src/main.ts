@@ -8,9 +8,13 @@ import {
 import type {
 	CeremonyOptionsResponse,
 	CeremonyVerifyResponse,
+	Credential,
+	CredentialsResponse,
 	ErrorResponse,
 	InvitationRedeemResponse,
 	OkResponse,
+	SecurityConfirmationScope,
+	SecurityConfirmationVerifyResponse,
 	SessionState,
 } from "@voiceid/contracts";
 
@@ -25,6 +29,18 @@ const elements = {
 	signInButton: requireElement<HTMLButtonElement>("signin-button"),
 	logoutButton: requireElement<HTMLButtonElement>("logout-button"),
 	revokeButton: requireElement<HTMLButtonElement>("revoke-button"),
+	credentialList: requireElement<HTMLUListElement>("credential-list"),
+	recoveryStatus: requireElement<HTMLParagraphElement>("recovery-status"),
+	addCredentialForm: requireElement<HTMLFormElement>("add-credential-form"),
+	credentialLabel: requireElement<HTMLInputElement>("credential-label"),
+	addCredentialButton: requireElement<HTMLButtonElement>(
+		"add-credential-button",
+	),
+	deleteAccountForm: requireElement<HTMLFormElement>("delete-account-form"),
+	deleteConfirmation: requireElement<HTMLInputElement>("delete-confirmation"),
+	deleteAccountButton: requireElement<HTMLButtonElement>(
+		"delete-account-button",
+	),
 	sessionUser: requireElement<HTMLElement>("session-user"),
 	sessionAssurance: requireElement<HTMLElement>("session-assurance"),
 	sessionIdle: requireElement<HTMLElement>("session-idle"),
@@ -75,7 +91,13 @@ function setStatus(
 function renderSession(state: SessionState): void {
 	elements.guestPanel.hidden = state.authenticated;
 	elements.sessionPanel.hidden = !state.authenticated;
-	if (!state.authenticated) return;
+	if (!state.authenticated) {
+		elements.credentialList.replaceChildren();
+		elements.recoveryStatus.textContent = "A second Passkey is required";
+		elements.recoveryStatus.dataset.ready = "false";
+		elements.deleteAccountForm.reset();
+		return;
+	}
 
 	elements.sessionUser.textContent = state.user.displayName;
 	elements.sessionAssurance.textContent = state.assurance;
@@ -91,6 +113,7 @@ async function restoreSession(): Promise<void> {
 	try {
 		const state = await api<SessionState>("/v1/session");
 		renderSession(state);
+		if (state.authenticated) await loadCredentials();
 		setStatus(
 			state.authenticated
 				? "Authenticated session restored by the server."
@@ -110,6 +133,66 @@ function messageFrom(error: unknown): string {
 	return error instanceof Error
 		? error.message
 		: "The operation could not be completed.";
+}
+
+function credentialMeta(credential: Credential): string {
+	const storage = credential.backedUp
+		? "synced/backup eligible"
+		: "device-bound";
+	const lastUsed = credential.lastUsedAt
+		? `last used ${new Date(credential.lastUsedAt).toLocaleString()}`
+		: "not used for sign-in yet";
+	return `${credential.deviceType} · ${storage} · ${lastUsed}`;
+}
+
+function renderCredentials(result: CredentialsResponse): void {
+	elements.credentialList.replaceChildren(
+		...result.credentials.map((credential) => {
+			const item = document.createElement("li");
+			const label = document.createElement("strong");
+			label.textContent = credential.label;
+			const meta = document.createElement("span");
+			meta.textContent = credentialMeta(credential);
+			const remove = document.createElement("button");
+			remove.type = "button";
+			remove.textContent = "Remove";
+			remove.dataset.credentialId = credential.id;
+			remove.setAttribute("aria-label", `Remove ${credential.label}`);
+			if (result.credentials.length === 1) {
+				remove.disabled = true;
+				remove.title = "Add another Passkey before removing this one";
+			}
+			item.append(label, meta, remove);
+			return item;
+		}),
+	);
+	elements.recoveryStatus.textContent = result.recoveryReady
+		? "Recovery ready"
+		: "A second Passkey is required";
+	elements.recoveryStatus.dataset.ready = String(result.recoveryReady);
+}
+
+async function loadCredentials(): Promise<void> {
+	renderCredentials(await api<CredentialsResponse>("/v1/credentials"));
+}
+
+async function confirmSecurityAction(
+	scope: SecurityConfirmationScope,
+): Promise<void> {
+	const { options } = await api<CeremonyOptionsResponse>(
+		"/v1/security-confirmation/options",
+		{ method: "POST", body: JSON.stringify({ scope }) },
+	);
+	const response = await startAuthentication({
+		optionsJSON: options as unknown as PublicKeyCredentialRequestOptionsJSON,
+	});
+	const result = await api<SecurityConfirmationVerifyResponse>(
+		"/v1/security-confirmation/verify",
+		{ method: "POST", body: JSON.stringify({ response }) },
+	);
+	if (result.scope !== scope) {
+		throw new Error("The Passkey confirmation did not match this action.");
+	}
 }
 
 elements.inviteForm.addEventListener("submit", async (event) => {
@@ -158,6 +241,7 @@ elements.registerButton.addEventListener("click", async () => {
 			},
 		);
 		renderSession(result.session);
+		await loadCredentials();
 		setStatus(
 			"Passkey registered. The server issued an authenticated session.",
 			"success",
@@ -187,6 +271,7 @@ elements.signInButton.addEventListener("click", async () => {
 			},
 		);
 		renderSession(result.session);
+		await loadCredentials();
 		setStatus("Passkey verified. The server issued a new session.", "success");
 	} catch (error) {
 		setStatus(messageFrom(error), "error");
@@ -221,6 +306,93 @@ elements.revokeButton.addEventListener("click", async () => {
 		setStatus(messageFrom(error), "error");
 	} finally {
 		setBusy(elements.revokeButton, false, "");
+	}
+});
+
+elements.addCredentialForm.addEventListener("submit", async (event) => {
+	event.preventDefault();
+	setBusy(elements.addCredentialButton, true, "Confirming current Passkey…");
+	try {
+		setStatus(
+			"Use an existing Passkey to authorize adding a recovery Passkey.",
+		);
+		await confirmSecurityAction("credential_add");
+		setBusy(elements.addCredentialButton, true, "Creating new Passkey…");
+		const { options } = await api<CeremonyOptionsResponse>(
+			"/v1/webauthn/credentials/options",
+			{ method: "POST" },
+		);
+		const response = await startRegistration({
+			optionsJSON: options as unknown as PublicKeyCredentialCreationOptionsJSON,
+		});
+		const result = await api<CredentialsResponse>(
+			"/v1/webauthn/credentials/verify",
+			{
+				method: "POST",
+				body: JSON.stringify({
+					label: elements.credentialLabel.value,
+					response,
+				}),
+			},
+		);
+		renderCredentials(result);
+		setStatus(
+			"The second Passkey is active. This account now has a recovery path.",
+			"success",
+		);
+	} catch (error) {
+		setStatus(messageFrom(error), "error");
+	} finally {
+		setBusy(elements.addCredentialButton, false, "");
+	}
+});
+
+elements.credentialList.addEventListener("click", async (event) => {
+	const button = event.target;
+	if (!(button instanceof HTMLButtonElement)) return;
+	const credentialId = button.dataset.credentialId;
+	if (!credentialId) return;
+	setBusy(button, true, "Confirming…");
+	try {
+		setStatus("Confirm Passkey removal with an active Passkey.");
+		await confirmSecurityAction("credential_revoke");
+		await api<OkResponse>("/v1/credentials", {
+			method: "DELETE",
+			body: JSON.stringify({ credentialId }),
+		});
+		renderSession({ authenticated: false });
+		setStatus(
+			"The Passkey was removed and all sessions were revoked. Sign in again.",
+			"success",
+		);
+	} catch (error) {
+		setStatus(messageFrom(error), "error");
+	} finally {
+		setBusy(button, false, "");
+	}
+});
+
+elements.deleteAccountForm.addEventListener("submit", async (event) => {
+	event.preventDefault();
+	setBusy(elements.deleteAccountButton, true, "Confirming Passkey…");
+	try {
+		await confirmSecurityAction("account_delete");
+		setBusy(elements.deleteAccountButton, true, "Deleting account…");
+		await api<OkResponse>("/v1/account", {
+			method: "DELETE",
+			body: JSON.stringify({
+				confirmation: elements.deleteConfirmation.value,
+			}),
+		});
+		renderSession({ authenticated: false });
+		setStatus(
+			"The account was deleted. Its Passkeys and sessions can no longer authenticate.",
+			"success",
+		);
+	} catch (error) {
+		setStatus(messageFrom(error), "error");
+	} finally {
+		setBusy(elements.deleteAccountButton, false, "");
 	}
 });
 

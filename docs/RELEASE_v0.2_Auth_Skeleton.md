@@ -1,6 +1,6 @@
 # VoiceID Online Beta Auth Skeleton v0.2
 
-状态：local/staging candidate，未批准生产发布
+状态：deployable staging candidate，未批准生产发布
 
 日期：2026-07-21
 
@@ -19,19 +19,25 @@ Browser Playground 的 challenge、proof 和 session 全部由不可信客户端
 - 15 分钟 idle expiry、8 小时 absolute expiry、当前会话退出与用户全部会话撤销。
 - 精确 Origin 检查、全局/认证限速、安全响应头、no-store、liveness/readiness、请求 ID 和不含凭证载荷的审计事件。
 - 独立 Vite 页面：邀请兑换、Passkey 注册/登录、会话恢复、退出和 revoke-all；不存在客户端硬编码认证成功态。
+- 高风险操作二次确认：现有 Passkey 签发短时、一次性、用途绑定的操作确认；添加/撤销凭证与删除账户不可串用或重放。
+- 第二 Passkey 与安全恢复：凭证列表、恢复就绪状态、不同认证器添加；最后一个可用 Passkey 不允许撤销。
+- 凭证撤销与账户删除：撤销凭证会撤销全部 session；删除会停用全部凭证/session、撤回 consent，并清空服务端公钥材料与直接 profile 名称。
+- 操作员邀请 CLI：随机 code 只输出一次，PostgreSQL 只保存 HMAC、标签、发行人、到期和消费状态。
+- Provider-neutral 预发包：固定 Node/Caddy 版本、非 root/read-only 容器、同源反向代理、Secret 文件挂载、数据库 TLS/区域与 trusted proxy fail-closed 契约。
 
 ## 自动验证证据
 
 - TypeScript strict typecheck 与 Biome lint。
-- 5 项 fail-closed 配置测试、3 项 token/hash 测试。
-- PostgreSQL 集成测试验证邀请单次消费、并发 challenge 只有一个消费者成功、opaque session 查找和撤销。
-- Playwright + Chrome/Chromium 虚拟认证器验证真实注册、刷新恢复、退出、重新登录、认证断言重放拒绝、revoke-all 和恶意 Origin 拒绝。
+- 8 项 fail-closed 配置测试、3 项 token/hash 测试。
+- PostgreSQL 集成测试验证邀请单次消费、并发 challenge、opaque session、确认用途隔离、最后凭证保护、凭证撤销和删除后公钥清空。
+- Playwright + Chrome/Chromium 双虚拟认证器验证注册、第二 Passkey、刷新恢复、重放拒绝、revoke-all、凭证撤销、账户删除和恶意 Origin 拒绝。
+- CI 构建 API/Web 镜像，并验证 Caddy 与强制变量/Secret 文件的 Compose 契约。
 - npm production/full dependency audit 均为 0 known vulnerabilities（检查日期 2026-07-21）。
 
 ## 明确未实现
 
-- 生产域名、RP ID、TLS/同源代理、托管数据库、secret manager、KMS、告警、备份恢复和三环境基础设施。
-- 第二 Passkey、凭证列表/撤销、账户删除/导出、管理员邀请发行、邮件或人工恢复。
+- 实际生产域名/RP ID、TLS ingress、托管数据库实例、secret manager 资源、KMS、告警接收、备份恢复演练和三环境基础设施。
+- 批量/管理后台邀请、账户数据导出、审计保留执行器、邮件或人工恢复（本 Beta 明确不提供后两者）。
 - SIWE、ERC-1271、钱包绑定、交易或任何链写入。
 - 真实音频、声纹模板、模型推理、VoiceAssessment、PIPIA/DPIA 或生物数据处理。
 
@@ -41,8 +47,8 @@ Browser Playground 的 challenge、proof 和 session 全部由不可信客户端
 
 1. 冻结 Online Beta 的 HTTPS origin、WebAuthn RP ID、Cookie 域、邀请地区与数据区域。
 2. 使用环境 secret manager/KMS 注入独立 pepper 与数据库凭据，验证轮换与撤销。
-3. 通过反向代理提供 Web/API 同源、安全响应头、TLS、请求大小/超时和受控日志。
-4. 完成账户删除、第二认证器/安全恢复、凭证撤销、审计查询、告警与运维 Runbook。
+3. 用实际 HTTPS ingress 验证当前同源代理、安全响应头、请求大小/超时和日志 allowlist。
+4. 接通审计查询/保留执行器、告警与值班；按预发 Runbook 完成演练并留存证据。
 5. 在预发运行依赖/SAST/DAST、ASVS L2 证据映射、备份恢复、迁移和应用回滚演练，并完成独立安全审查。
 
 ## 回滚

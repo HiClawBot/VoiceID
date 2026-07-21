@@ -95,3 +95,33 @@ jobs:
             apps/online-beta/test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  deployment-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build API runtime image
+        run: docker build --file infra/containers/Dockerfile.api --tag voiceid-auth-api:test .
+
+      - name: Build same-origin edge image
+        run: docker build --file infra/containers/Dockerfile.web --tag voiceid-web:test .
+
+      - name: Validate Caddy configuration
+        run: >-
+          docker run --rm --entrypoint caddy voiceid-web:test
+          validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+      - name: Validate staging Compose contract
+        env:
+          DATA_REGION: test-region-1
+          DATABASE_URL_SECRET_FILE: /tmp/voiceid-database-url
+          EXPECTED_ORIGIN: https://beta.example.test
+          RP_ID: example.test
+          TOKEN_PEPPER_SECRET_FILE: /tmp/voiceid-token-pepper
+        run: |
+          printf '%s\n' 'postgres://user:password@db.example.test/voiceid?sslmode=verify-full' > "$DATABASE_URL_SECRET_FILE"
+          printf '%s\n' 'ci-only-token-pepper-with-more-than-32-characters' > "$TOKEN_PEPPER_SECRET_FILE"
+          docker compose --file infra/compose.staging.yml config --quiet
