@@ -1,0 +1,14 @@
+title: VoiceID
+
+exclude:
+  - .env.example
+  - apps
+  - biome.json
+  - infra
+  - node_modules
+  - package-lock.json
+  - package.json
+  - packages
+  - scripts
+  - services
+  - tsconfig.base.json
