@@ -22,6 +22,19 @@ STATIC_PAGE_PATHS = (
     "beta/index.html",
     "docs/VoiceID_Online_Beta_施工计划_v0.2.html",
 )
+PAGES_EXCLUDED_PATHS = {
+    ".env.example",
+    "apps",
+    "biome.json",
+    "infra",
+    "node_modules",
+    "package-lock.json",
+    "package.json",
+    "packages",
+    "scripts",
+    "services",
+    "tsconfig.base.json",
+}
 BETA_STORAGE_KEYS = {
     "voiceid.beta.proof",
     "voiceid.beta.profile",
@@ -167,6 +180,19 @@ def main() -> int:
     missing_pages = sorted(relative for relative in STATIC_PAGE_PATHS if not (ROOT / relative).exists())
     for relative in missing_pages:
         errors.append(f"Missing declared static page: {relative}")
+
+    if (ROOT / ".nojekyll").exists():
+        errors.append(".nojekyll disables the Pages source exclusion boundary")
+    pages_config = ROOT / "_config.yml"
+    if not pages_config.exists():
+        errors.append("Missing _config.yml Pages source exclusion boundary")
+    else:
+        configured_exclusions = set(
+            re.findall(r"^\s+-\s+([^#\s]+)\s*$", pages_config.read_text(encoding="utf-8"), re.MULTILINE)
+        )
+        missing_exclusions = sorted(PAGES_EXCLUDED_PATHS - configured_exclusions)
+        if missing_exclusions:
+            errors.append(f"Pages config is missing exclusions: {', '.join(missing_exclusions)}")
 
     for relative, markers in PUBLIC_TRUTH_MARKERS.items():
         path = ROOT / relative
