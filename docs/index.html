@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VoiceID 文档 - 声纹身份协议</title>
+    <meta
+      name="description"
+      content="VoiceID 中文文档中心：Browser Playground、模拟证明、钱包测试签名、安全边界和开发者接入。"
+    />
+    <meta name="theme-color" content="#0B132B" />
+    <meta property="og:title" content="VoiceID 文档 - 声纹身份协议" />
+    <meta property="og:description" content="VoiceID Browser Playground 文档与 Online Beta 施工边界。当前实现仅用于演示。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="../assets/voiceid-logo.svg" />
+    <link rel="icon" href="../assets/voiceid-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="docs-page">
+    <a class="skip-link" href="#main">跳到文档内容</a>
+    <header class="site-header" data-header>
+      <nav class="nav-shell" aria-label="文档导航">
+        <a class="brand-link" href="../" aria-label="VoiceID 首页">
+          <img src="../assets/voiceid-mark.svg" alt="" width="36" height="36" />
+          <span>Voice<span>ID</span></span>
+        </a>
+        <div class="nav-links" aria-label="页面导航">
+          <a href="../#protocol">协议能力</a>
+          <a href="../#developers">开发者</a>
+          <a class="mobile-core-link" href="../beta/">Playground</a>
+          <a class="mobile-core-link" href="./" aria-current="page">文档</a>
+          <a href="../#brand">品牌视觉</a>
+        </div>
+        <div class="nav-actions">
+          <a class="nav-action" href="en/">英文版</a>
+          <a class="nav-action" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">代码仓库</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="docs-shell" id="main">
+      <aside class="docs-sidebar" aria-label="文档目录">
+        <p>VoiceID Docs</p>
+        <nav>
+          <a href="#overview">概览</a>
+          <a href="#quickstart">快速开始</a>
+          <a href="#beta">Playground 使用</a>
+          <a href="#voice-proof">声纹证明</a>
+          <a href="#wallet">钱包签名</a>
+          <a href="#security">安全边界</a>
+          <a href="#developer">开发者接入</a>
+          <a href="#release">发布检查</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <header class="docs-hero">
+          <p class="eyebrow">中文文档</p>
+          <h1>VoiceID 使用文档</h1>
+          <p>
+            VoiceID 是声纹身份协议。当前文档说明 Browser Playground 如何演示声音挑战、模拟证明、测试钱包签名和本地会话输出；它不是线上认证系统。
+          </p>
+          <div class="docs-meta">
+            <span>状态：Browser Playground v0.1</span>
+            <span>范围：demo-only / 无服务端认证</span>
+            <span>端口：3400-3499</span>
+          </div>
+          <p>
+            真实 Online Beta 的依赖路径、风险与发布门见
+            <a href="VoiceID_Online_Beta_施工计划_v0.2.html">可视化决策稿</a>；完整细节保留在
+            <a href="VoiceID_Online_Beta_施工计划_v0.2.md">Markdown 施工计划</a>。
+          </p>
+        </header>
+
+        <section class="docs-section" id="overview">
+          <h2>概览</h2>
+          <p>
+            VoiceID 的目标是把声音信号接入可审计的身份协议。当前 Playground 只证明界面与对象流转，不直接处理主网资产，不做实名认证或说话人识别，不长期保存原始音频。
+          </p>
+          <pre><code>用户打开 Playground
+  -> 生成随机声纹挑战
+  -> 浏览器采样并完成本地质量检测
+  -> 生成模拟 VoiceProof
+  -> 绑定测试钱包地址
+  -> 签名测试消息
+  -> 输出 AuthSession</code></pre>
+        </section>
+
+        <section class="docs-section" id="quickstart">
+          <h2>快速开始</h2>
+          <p>当前仓库是静态 GitHub Pages 项目，本地预览不需要安装依赖。</p>
+          <div class="code-panel docs-code">
+            <div class="code-head">
+              <span>本地预览</span>
+              <button type="button" data-copy-code aria-live="polite">复制</button>
+            </div>
+            <pre><code>python3 -m http.server 3400</code></pre>
+          </div>
+          <p>打开本地地址：</p>
+          <pre><code>http://localhost:3400/</code></pre>
+          <p>端口只能使用 <code>3400-3499</code>。如果 <code>3400</code> 被占用，依次使用 <code>3401</code>、<code>3402</code>。</p>
+        </section>
+
+        <section class="docs-section" id="beta">
+          <h2>Playground 使用</h2>
+          <p>
+            Browser Playground 已在 <a href="../beta/"><code>/beta/</code></a> 提供本地模拟闭环。它按下面顺序工作：
+          </p>
+          <ol>
+            <li>显示随机数字挑战。</li>
+            <li>请求麦克风权限并开始采样。</li>
+            <li>检测音量、时长和输入可用性。</li>
+            <li>生成模拟 <code>VoiceProof</code>。</li>
+            <li>连接测试钱包。</li>
+            <li>签名测试消息并输出 <code>AuthSession</code>。</li>
+          </ol>
+          <p>如果浏览器拒绝麦克风权限，页面必须显示可恢复错误，不应卡死。</p>
+          <p>
+            实现边界与字段定义见
+            <a href="ADR-001_Beta_挑战与签名分层.md">ADR-001</a>、
+            <a href="ADR-002_Online_Beta_信任根与语音数据边界.md">ADR-002</a>、
+            <a href="VoiceID_Protocol_Schema.md">Protocol Schema</a> 和
+            <a href="VoiceID_Beta_验收清单.md">Beta 验收清单</a>。
+          </p>
+        </section>
+
+        <section class="docs-section" id="voice-proof">
+          <h2>声纹证明</h2>
+          <p><code>VoiceProof</code> 是 Playground 的 demo-only 证明对象。它只表达音频质量阈值通过，不代表说话人身份；原始音频不会被持久化。</p>
+          <div class="code-panel docs-code">
+            <div class="code-head">
+              <span>VoiceProof 示例</span>
+              <button type="button" data-copy-code aria-live="polite">复制</button>
+            </div>
+            <pre><code>{
+  "id": "vp_a62e15d4",
+  "type": "VoiceProof",
+  "version": "0.1",
+  "challengeId": "vc_7f3c9a21",
+  "scope": ["login", "wallet:sign"],
+  "createdAt": "2026-07-11T08:00:18.000Z",
+  "expiresAt": "2026-07-11T08:05:18.000Z",
+  "method": "local-simulated-v0",
+  "assurance": "demo-only",
+  "status": "verified",
+  "audioQuality": {
+    "durationMs": 4218,
+    "rms": 0.084,
+    "peak": 0.612,
+    "clippingRatio": 0.001,
+    "quality": "good",
+    "source": "microphone"
+  },
+  "rawAudioPersisted": false
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="wallet">
+          <h2>钱包签名</h2>
+          <p>Playground 只允许测试签名，不允许转账、授权代扣或主网资产操作。签名消息必须让用户看懂域名、nonce、用途和过期时间。</p>
+          <pre><code>VoiceID Playground Login
+Domain: localhost:3400
+Nonce: 5b8f31a2d0e4
+VoiceProof: vp_a62e15d4
+Scope: login,wallet:sign
+Expires: 2026-07-11T08:05:18.000Z</code></pre>
+          <p>钱包连接失败、用户拒绝签名、钱包不存在都必须成为独立错误状态。</p>
+        </section>
+
+        <section class="docs-section" id="security">
+          <h2>安全边界</h2>
+          <ul>
+            <li>不保存原始音频。</li>
+            <li>不发起真实转账。</li>
+            <li>不把声纹证明当作生产级生物识别结果。</li>
+            <li>所有证明对象必须有过期时间。</li>
+            <li>用户拒绝权限或签名时必须可回到上一步。</li>
+          </ul>
+        </section>
+
+        <section class="docs-section" id="developer">
+          <h2>开发者接入</h2>
+          <p>下面是未来 SDK 的非执行示意，并非当前仓库已导出的 API。当前可执行实现以 <code>beta/adapters/</code> 内的原生模块为准。</p>
+          <div class="code-panel docs-code">
+            <div class="code-head">
+              <span>未来接口示意 · 当前不可执行</span>
+              <button type="button" data-copy-code aria-live="polite">复制</button>
+            </div>
+            <pre><code>const voiceid = await VoiceID.connect({
+  network: "testnet",
+  wallet: "injected"
+});
+
+const session = await voiceid.authenticate({
+  scope: ["login", "wallet:sign"],
+  proof: "voice"
+});
+
+await session.verify();</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="release">
+          <h2>发布检查</h2>
+          <ul>
+            <li>中文官网 <code>/</code> 可访问。</li>
+            <li>英文官网 <code>/en/</code> 可访问且不混中文。</li>
+            <li>中文文档 <code>/docs/</code> 可访问。</li>
+            <li>英文文档 <code>/docs/en/</code> 可访问且不混中文。</li>
+            <li>Browser Playground <code>/beta/</code> 可访问并明确标记 demo-only。</li>
+            <li>本地预览端口只使用 <code>3400-3499</code>。</li>
+            <li>静态资源无缺失。</li>
+            <li>Playground 页面不触发真实转账。</li>
+            <li><a href="RELEASE_v0.1_Playground.md">v0.1 Release Notes</a> 记录能力边界与回滚方式。</li>
+          </ul>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer docs-footer">
+      <a class="brand-link" href="../" aria-label="VoiceID 首页">
+        <img src="../assets/voiceid-mark.svg" alt="" width="32" height="32" />
+        <span>Voice<span>ID</span></span>
+      </a>
+      <p>VoiceID 文档中心 · Browser Playground v0.1 · demo-only</p>
+      <a href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">github.com/HiClawBot/VoiceID</a>
+    </footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

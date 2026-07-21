@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VoiceID Browser Playground - 本地协议演示</title>
+    <meta
+      name="description"
+      content="VoiceID Browser Playground：在浏览器中体验随机语音挑战、模拟 VoiceProof、测试钱包签名与本地会话。仅用于演示。"
+    />
+    <meta name="theme-color" content="#0B132B" />
+    <link rel="icon" href="../assets/voiceid-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="beta.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到 Playground 主流程</a>
+
+    <header class="beta-header">
+      <nav class="beta-nav" aria-label="Playground 导航">
+        <a class="beta-brand" href="../" aria-label="返回 VoiceID 首页">
+          <img src="../assets/voiceid-mark.svg" alt="" width="34" height="34" />
+          <span>Voice<span>ID</span></span>
+        </a>
+        <div class="beta-nav-links">
+          <a class="mobile-core-link" href="../docs/">文档</a>
+          <a href="../docs/VoiceID_Beta_验收清单.md">验收清单</a>
+          <a href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">代码仓库</a>
+        </div>
+        <span class="beta-mode">Playground · Demo only</span>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="beta-hero" aria-labelledby="beta-title">
+        <div class="beta-hero-copy">
+          <p class="beta-eyebrow">VoiceID Browser Playground v0.1</p>
+          <h1 id="beta-title">从声音挑战到钱包签名，一次跑通。</h1>
+          <p>
+            这是一个本地、可重置的协议演示。它检查麦克风输入质量，生成明确标记为模拟的
+            VoiceProof，再请求测试钱包签名。它不识别真实说话人，不发送交易，也不保存原始音频。
+          </p>
+          <div class="hero-badges" aria-label="Playground 安全边界">
+            <span>无主网交易</span>
+            <span>无原始音频存储</span>
+            <span>无服务端验签</span>
+          </div>
+        </div>
+
+        <aside class="protocol-summary" aria-label="协议分层摘要">
+          <p class="summary-label">Protocol layers</p>
+          <ol>
+            <li>
+              <span>01</span>
+              <div><strong>Presence demo</strong><small>随机数字 + 本地音频质量</small></div>
+            </li>
+            <li>
+              <span>02</span>
+              <div><strong>Identity profile</strong><small>当前标签会话内的演示档案</small></div>
+            </li>
+            <li>
+              <span>03</span>
+              <div><strong>Wallet control</strong><small>动态 nonce + 测试消息签名</small></div>
+            </li>
+          </ol>
+          <p class="summary-foot">Assurance: <strong>demo-only</strong></p>
+        </aside>
+      </section>
+
+      <section class="workflow-shell" aria-label="VoiceID Playground 工作流">
+        <aside class="workflow-rail">
+          <p class="rail-label">Session flow</p>
+          <ol>
+            <li data-rail-step="challenge"><span>01</span><div><strong>声音挑战</strong><small>等待开始</small></div></li>
+            <li data-rail-step="profile"><span>02</span><div><strong>身份档案</strong><small>尚未创建</small></div></li>
+            <li data-rail-step="wallet"><span>03</span><div><strong>测试钱包</strong><small>尚未连接</small></div></li>
+            <li data-rail-step="session"><span>04</span><div><strong>会话结果</strong><small>尚未签名</small></div></li>
+          </ol>
+          <button class="button button-quiet" id="reset-session" type="button">重置当前会话</button>
+        </aside>
+
+        <div class="workflow-content">
+          <div class="app-status" id="app-status" data-kind="info" role="status" aria-live="polite">
+            <span class="status-mark" aria-hidden="true"></span>
+            <div>
+              <strong id="app-status-title">准备就绪</strong>
+              <p id="app-status-copy">先完成随机数字挑战，再创建本地演示身份。</p>
+            </div>
+          </div>
+
+          <section class="beta-step" id="challenge-step" aria-labelledby="challenge-title">
+            <header class="step-heading">
+              <span>01</span>
+              <div>
+                <p>Local presence demo</p>
+                <h2 id="challenge-title">声音挑战</h2>
+              </div>
+              <span class="step-state" id="challenge-state">待采样</span>
+            </header>
+
+            <div class="step-grid challenge-layout">
+              <div class="challenge-console">
+                <p>请清晰念出以下数字</p>
+                <strong id="challenge-value" aria-label="当前六位数字挑战">------</strong>
+                <dl class="challenge-meta">
+                  <div><dt>Challenge</dt><dd id="challenge-id">—</dd></div>
+                  <div><dt>Expires</dt><dd id="challenge-expiry">—</dd></div>
+                </dl>
+                <div class="level-track" id="level-track" role="progressbar" aria-label="麦克风输入电平" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <span id="level-fill"></span>
+                </div>
+                <p class="sampling-copy" id="sampling-copy">尚未访问麦克风</p>
+              </div>
+
+              <div class="challenge-controls">
+                <div class="control-intro">
+                  <h3>只分析质量，不保存声音</h3>
+                  <p>浏览器只计算时长、RMS、峰值和削波比例；音轨在完成、失败或重置后立即停止。</p>
+                </div>
+                <div class="action-row">
+                  <button class="button button-primary" id="start-microphone" type="button">授权麦克风并采样</button>
+                  <button class="button button-secondary" id="use-demo-audio" type="button">使用演示音频指标</button>
+                  <button class="button button-text" id="new-challenge" type="button">生成新挑战</button>
+                </div>
+                <p class="helper">演示输入不会访问麦克风，生成的证明仍会标记为 simulated / demo-only。</p>
+                <p class="inline-error" id="challenge-error" role="alert" hidden></p>
+              </div>
+            </div>
+
+            <dl class="quality-strip" aria-label="音频质量指标">
+              <div><dt>Duration</dt><dd id="metric-duration">—</dd></div>
+              <div><dt>RMS</dt><dd id="metric-rms">—</dd></div>
+              <div><dt>Peak</dt><dd id="metric-peak">—</dd></div>
+              <div><dt>Clipping</dt><dd id="metric-clipping">—</dd></div>
+              <div><dt>Quality</dt><dd id="metric-quality">等待输入</dd></div>
+            </dl>
+          </section>
+
+          <section class="beta-step" id="profile-step" aria-labelledby="profile-title">
+            <header class="step-heading">
+              <span>02</span>
+              <div>
+                <p>Session-only identity</p>
+                <h2 id="profile-title">身份档案与回退</h2>
+              </div>
+              <span class="step-state" id="profile-state">等待证明</span>
+            </header>
+
+            <div class="step-grid profile-layout">
+              <div class="proof-summary">
+                <p class="section-kicker">VoiceProof</p>
+                <h3 id="proof-title">尚未生成证明</h3>
+                <p id="proof-description">完成声音挑战后，这里会显示 demo-only 证明与本地档案。</p>
+                <dl class="proof-facts">
+                  <div><dt>Proof ID</dt><dd id="proof-id">—</dd></div>
+                  <div><dt>Profile ID</dt><dd id="profile-id">—</dd></div>
+                  <div><dt>Storage</dt><dd id="profile-storage">session-only</dd></div>
+                  <div><dt>Assurance</dt><dd id="proof-assurance">demo-only</dd></div>
+                </dl>
+              </div>
+
+              <div class="recovery-panel">
+                <div class="control-intro">
+                  <h3>回退路径演示</h3>
+                  <p>输入只做格式校验并立即清空，不生成真实密钥，也不会离开当前页面。</p>
+                </div>
+                <fieldset id="recovery-controls" disabled>
+                  <form id="pin-form">
+                    <label for="pin-input">6 位演示 PIN</label>
+                    <div class="input-action">
+                      <input id="pin-input" name="pin" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="仅用于当前演示" />
+                      <button class="button button-secondary" type="submit">验证 PIN</button>
+                    </div>
+                  </form>
+                  <form id="recovery-form">
+                    <label for="recovery-input">演示恢复密钥</label>
+                    <div class="input-action">
+                      <input id="recovery-input" name="recovery" autocomplete="off" maxlength="15" placeholder="VOICE-XXXX-XXXX" />
+                      <button class="button button-secondary" type="submit">验证格式</button>
+                    </div>
+                  </form>
+                </fieldset>
+                <p class="helper" id="recovery-status" aria-live="polite">完成 VoiceProof 后可测试回退路径。</p>
+                <p class="inline-error" id="recovery-error" role="alert" hidden></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="beta-step" id="wallet-step" aria-labelledby="wallet-title">
+            <header class="step-heading">
+              <span>03</span>
+              <div>
+                <p>EIP-1193 test signing</p>
+                <h2 id="wallet-title">测试钱包与签名</h2>
+              </div>
+              <span class="step-state" id="wallet-state">等待身份档案</span>
+            </header>
+
+            <div class="wallet-actions">
+              <div>
+                <h3>连接方式</h3>
+                <p>真实路径只请求账户、chain ID 和可读测试签名；没有钱包时可走明确标识的模拟路径。</p>
+              </div>
+              <div class="action-row compact-actions">
+                <button class="button button-primary" id="connect-wallet" type="button" disabled>连接注入钱包</button>
+                <button class="button button-secondary" id="use-demo-wallet" type="button" disabled>使用模拟钱包</button>
+              </div>
+            </div>
+
+            <dl class="wallet-strip" aria-label="钱包连接状态">
+              <div><dt>Mode</dt><dd id="wallet-mode">—</dd></div>
+              <div><dt>Address</dt><dd id="wallet-address">—</dd></div>
+              <div><dt>Chain ID</dt><dd id="wallet-chain">—</dd></div>
+              <div><dt>Provider</dt><dd id="wallet-provider">—</dd></div>
+            </dl>
+
+            <div class="signing-layout">
+              <div>
+                <p class="section-kicker">Readable signing request</p>
+                <h3>签名前请核对来源、范围与过期时间</h3>
+                <p>该消息不授权转账或资产操作。真实钱包返回签名后，本页面也不会进行服务端验签。</p>
+                <button class="button button-primary" id="sign-message" type="button" disabled>签署测试登录消息</button>
+                <p class="inline-error" id="wallet-error" role="alert" hidden></p>
+              </div>
+              <pre class="message-preview"><code id="signing-message">连接钱包后生成动态 nonce 与可读签名消息。</code></pre>
+            </div>
+          </section>
+
+          <section class="beta-step session-step" id="session-step" aria-labelledby="session-title">
+            <header class="step-heading">
+              <span>04</span>
+              <div>
+                <p>Signed demo session</p>
+                <h2 id="session-title">会话结果</h2>
+              </div>
+              <span class="step-state" id="session-state">等待签名</span>
+            </header>
+
+            <div class="session-layout">
+              <div class="session-copy">
+                <p class="section-kicker">AuthSession</p>
+                <h3 id="session-heading">尚未生成会话</h3>
+                <p id="session-description">完成测试签名后输出会话摘要；签名本身只保留在页面内存。</p>
+                <div class="session-warning">
+                  <strong>serverVerified = false</strong>
+                  <span>这是签名返回演示，不是服务端认证结果。</span>
+                </div>
+                <button class="button button-secondary" id="copy-session" type="button" aria-live="polite" disabled>复制会话摘要</button>
+              </div>
+              <pre class="session-output"><code id="session-output">{
+  "status": "waiting"
+}</code></pre>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="beta-footer">
+      <p>VoiceID Browser Playground v0.1 · Local demo · No production biometrics</p>
+      <div>
+        <a href="../docs/ADR-001_Beta_挑战与签名分层.md">协议决策</a>
+        <a href="../docs/VoiceID_Protocol_Schema.md">Schema</a>
+        <a href="../docs/VoiceID_Beta_验收清单.md">验收清单</a>
+      </div>
+    </footer>
+
+    <script type="module" src="beta.js"></script>
+  </body>
+</html>

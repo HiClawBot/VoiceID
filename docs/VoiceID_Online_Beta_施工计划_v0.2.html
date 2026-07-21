@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VoiceID Online Beta v0.2 · 上线施工决策稿</title>
+    <meta name="description" content="VoiceID 从 Browser Playground 到真实 Online Beta 的执行路线、信任模型、质量门和六周施工计划。" />
+    <meta name="theme-color" content="#0b132b" />
+    <meta property="og:title" content="VoiceID Online Beta v0.2 · 上线施工决策稿" />
+    <meta property="og:description" content="从可公开的 Browser Playground，到以服务端信任根为基础的真实 Online Beta。" />
+    <meta property="og:type" content="article" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b132b'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-size='12' fill='white'%3EVI%3C/text%3E%3C/svg%3E" />
+    <style>
+      :root {
+        color-scheme: light;
+        --background: oklch(0.9814 0.0045 258.32);
+        --foreground: oklch(0.2449 0.0388 264.35);
+        --primary: oklch(0.5679 0.1709 258.71);
+        --primary-strong: oklch(0.4669 0.1428 258.30);
+        --accent: oklch(0.6028 0.1344 63.03);
+        --navy: oklch(0.1944 0.0498 267.74);
+        --surface: oklch(1 0 89.88);
+        --surface-soft: oklch(0.9616 0.0114 252.09);
+        --surface-strong: oklch(0.9326 0.0212 252.50);
+        --muted: oklch(0.5437 0.0389 263.38);
+        --border: oklch(0.9034 0.0191 255.54);
+        --success: oklch(0.5147 0.0924 165.96);
+        --warning: oklch(0.5492 0.1102 69.50);
+        --danger: oklch(0.5085 0.1384 19.04);
+        --code: oklch(0.2494 0.0538 260.74);
+        --on-dark: oklch(0.9816 0.0086 264.52);
+        --on-dark-muted: oklch(0.8194 0.0303 257.77);
+        --mast-primary: oklch(0.7900 0.0860 257.5);
+        --mast-meta: oklch(0.7060 0.0410 257.5);
+        --mark: oklch(0.8500 0.0740 257.5);
+        --print-ink: oklch(0.1780 0 0);
+        --print-muted: oklch(0.4500 0 0);
+        --print-border: oklch(0.7700 0 0);
+        --shadow: 0 16px 44px rgba(11, 19, 43, 0.12);
+        --content: 1120px;
+      }
+
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.2062 0.0385 263.23);
+        --foreground: oklch(0.9445 0.0149 260.73);
+        --primary: oklch(0.7305 0.1204 258.41);
+        --primary-strong: oklch(0.8264 0.0745 258.58);
+        --accent: oklch(0.7641 0.1255 71.30);
+        --navy: oklch(0.1619 0.0334 265.57);
+        --surface: oklch(0.2412 0.0430 264.08);
+        --surface-soft: oklch(0.2742 0.0500 262.63);
+        --surface-strong: oklch(0.3243 0.0571 259.60);
+        --muted: oklch(0.7662 0.0321 258.94);
+        --border: oklch(0.3695 0.0497 259.89);
+        --success: oklch(0.7329 0.1019 164.51);
+        --warning: oklch(0.7790 0.1112 75.84);
+        --danger: oklch(0.7381 0.1184 15.74);
+        --code: oklch(0.1740 0.0338 261.87);
+        --on-dark: oklch(0.9816 0.0086 264.52);
+        --on-dark-muted: oklch(0.8194 0.0303 257.77);
+        --mast-primary: oklch(0.7900 0.0860 257.5);
+        --mast-meta: oklch(0.7060 0.0410 257.5);
+        --mark: oklch(0.8500 0.0740 257.5);
+        --print-ink: oklch(0.1780 0 0);
+        --print-muted: oklch(0.4500 0 0);
+        --print-border: oklch(0.7700 0 0);
+        --shadow: none;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]):not([data-theme="dark"]) {
+          color-scheme: dark;
+          --background: oklch(0.2062 0.0385 263.23);
+          --foreground: oklch(0.9445 0.0149 260.73);
+          --primary: oklch(0.7305 0.1204 258.41);
+          --primary-strong: oklch(0.8264 0.0745 258.58);
+          --accent: oklch(0.7641 0.1255 71.30);
+          --navy: oklch(0.1619 0.0334 265.57);
+          --surface: oklch(0.2412 0.0430 264.08);
+          --surface-soft: oklch(0.2742 0.0500 262.63);
+          --surface-strong: oklch(0.3243 0.0571 259.60);
+          --muted: oklch(0.7662 0.0321 258.94);
+          --border: oklch(0.3695 0.0497 259.89);
+          --success: oklch(0.7329 0.1019 164.51);
+          --warning: oklch(0.7790 0.1112 75.84);
+          --danger: oklch(0.7381 0.1184 15.74);
+          --code: oklch(0.1740 0.0338 261.87);
+          --on-dark: oklch(0.9816 0.0086 264.52);
+          --on-dark-muted: oklch(0.8194 0.0303 257.77);
+          --mast-primary: oklch(0.7900 0.0860 257.5);
+          --mast-meta: oklch(0.7060 0.0410 257.5);
+          --mark: oklch(0.8500 0.0740 257.5);
+          --print-ink: oklch(0.1780 0 0);
+          --print-muted: oklch(0.4500 0 0);
+          --print-border: oklch(0.7700 0 0);
+          --shadow: none;
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        color: var(--foreground);
+        background: var(--background);
+        font-family: Satoshi, "Avenir Next", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: inherit; }
+      button { font: inherit; }
+      a:focus-visible, button:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+      .skip-link {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 30;
+        transform: translateY(-160%);
+        padding: 10px 14px;
+        color: var(--on-dark);
+        background: var(--navy);
+        border-radius: 8px;
+      }
+      .skip-link:focus { transform: translateY(0); }
+      .mast {
+        color: var(--on-dark);
+        background: var(--navy);
+        border-bottom: 6px solid var(--primary);
+      }
+      .mast-inner {
+        width: min(var(--content), calc(100% - 40px));
+        margin: 0 auto;
+        padding: 28px 0 58px;
+      }
+      .mast-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 64px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--on-dark);
+        text-decoration: none;
+        font-size: 21px;
+        font-weight: 900;
+      }
+      .brand-mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid rgba(255,255,255,.36);
+        border-radius: 50%;
+        color: var(--mark);
+        font-size: 12px;
+        letter-spacing: .08em;
+      }
+      .mast-actions { display: flex; align-items: center; gap: 14px; }
+      .mast-actions a, .theme-toggle {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 12px;
+        border: 1px solid rgba(255,255,255,.26);
+        border-radius: 9px;
+        color: var(--on-dark);
+        background: transparent;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .status-line {
+        margin: 0 0 20px;
+        color: var(--mast-primary);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+      }
+      h1 {
+        max-width: 900px;
+        margin: 0;
+        font-size: clamp(44px, 7vw, 82px);
+        line-height: .98;
+        letter-spacing: -.035em;
+        font-weight: 900;
+      }
+      .thesis {
+        max-width: 850px;
+        margin: 30px 0 0;
+        color: var(--on-dark-muted);
+        font-size: clamp(18px, 2vw, 23px);
+        line-height: 1.65;
+      }
+      .thesis strong { color: var(--on-dark); }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        margin: 44px 0 0;
+        border-top: 1px solid rgba(255,255,255,.18);
+        border-bottom: 1px solid rgba(255,255,255,.18);
+      }
+      .meta-grid div { padding: 16px 16px 16px 0; }
+      .meta-grid dt {
+        margin-bottom: 5px;
+        color: var(--mast-meta);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      .meta-grid dd { margin: 0; color: var(--on-dark); font-size: 14px; font-weight: 750; }
+      .release-lanes {
+        margin: 34px 0 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid rgba(255,255,255,.16);
+      }
+      .release-lanes li {
+        display: grid;
+        grid-template-columns: 110px 200px 1fr auto;
+        gap: 18px;
+        align-items: center;
+        min-height: 78px;
+        border-bottom: 1px solid rgba(255,255,255,.16);
+      }
+      .release-time { color: var(--mast-primary); font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 900; }
+      .release-name { color: var(--on-dark); font-size: 16px; font-weight: 900; }
+      .release-copy { color: var(--on-dark-muted); font-size: 14px; line-height: 1.5; }
+      .state {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        padding: 0 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .03em;
+        white-space: nowrap;
+      }
+      .state-go { color: var(--on-dark); background: rgba(36,120,91,.55); }
+      .state-build { color: var(--on-dark); background: rgba(154,100,24,.55); }
+      .state-gate { color: var(--on-dark); background: rgba(166,61,69,.55); }
+      main { width: min(var(--content), calc(100% - 40px)); margin: 0 auto; }
+      .toc {
+        margin: 36px 0 0;
+        padding: 22px 0 36px;
+        border-bottom: 1px solid var(--border);
+      }
+      .toc-label { margin: 0 0 12px; color: var(--muted); font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+      .toc ol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 22px; margin: 0; padding: 0; list-style: none; counter-reset: toc; }
+      .toc li { counter-increment: toc; border-top: 1px solid var(--border); }
+      .toc a { display: flex; gap: 10px; padding: 12px 0; color: var(--foreground); text-decoration: none; font-size: 13px; font-weight: 750; }
+      .toc a::before { content: counter(toc, decimal-leading-zero); color: var(--primary); font-variant-numeric: tabular-nums; }
+      .section { scroll-margin-top: 20px; padding: 74px 0; border-bottom: 1px solid var(--border); }
+      .section-head { display: grid; grid-template-columns: 110px minmax(0, 720px); gap: 26px; margin-bottom: 34px; }
+      .section-number { color: var(--primary); font-size: 13px; font-weight: 900; letter-spacing: .08em; }
+      h2 { margin: 0; color: var(--foreground); font-size: clamp(30px, 4vw, 42px); line-height: 1.08; letter-spacing: -.025em; }
+      .section-lede { max-width: 760px; margin: 14px 0 0; color: var(--muted); font-size: 17px; line-height: 1.75; }
+      .verdict {
+        padding: 30px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .verdict-label { margin: 0 0 12px; color: var(--accent); font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+      .verdict p { max-width: 850px; margin: 0; font-size: 20px; line-height: 1.65; }
+      .boundary-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 28px; margin-top: 32px; }
+      .boundary-grid h3, .plain-block h3 { margin: 0 0 14px; font-size: 18px; }
+      .boundary-grid ul, .plain-block ul { margin: 0; padding-left: 20px; }
+      .boundary-grid li, .plain-block li { margin: 9px 0; color: var(--muted); line-height: 1.6; }
+      .boundary-stop { padding: 24px; color: var(--on-dark); background: var(--navy); border-radius: 14px; }
+      .boundary-stop li { color: var(--on-dark-muted); }
+      .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+      table { width: 100%; border-collapse: collapse; min-width: 720px; }
+      caption { padding: 14px 16px; color: var(--muted); text-align: left; font-size: 13px; line-height: 1.5; }
+      th, td { padding: 14px 16px; border-top: 1px solid var(--border); text-align: left; vertical-align: top; font-size: 14px; line-height: 1.55; }
+      thead th { color: var(--muted); background: var(--surface-soft); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+      tbody th { color: var(--foreground); font-weight: 800; }
+      .good { color: var(--success); font-weight: 900; }
+      .warn { color: var(--warning); font-weight: 900; }
+      .bad { color: var(--danger); font-weight: 900; }
+      code, .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: .92em; }
+      .unit-map { display: grid; gap: 0; border-top: 1px solid var(--border); }
+      .unit-row { display: grid; grid-template-columns: 120px 220px 1fr 190px; gap: 22px; padding: 24px 0; border-bottom: 1px solid var(--border); align-items: start; }
+      .unit-row time { color: var(--primary); font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; }
+      .unit-row h3 { margin: 0; font-size: 18px; }
+      .unit-row p { margin: 0; color: var(--muted); line-height: 1.6; }
+      .unit-gate { color: var(--foreground); font-size: 13px; line-height: 1.5; font-weight: 750; }
+      .trust-flow {
+        display: grid;
+        grid-template-columns: 1fr 48px 1fr 48px 1fr 48px 1fr;
+        align-items: stretch;
+        gap: 0;
+      }
+      .trust-node { min-height: 170px; padding: 22px; border: 1px solid var(--border); background: var(--surface); border-radius: 12px; }
+      .trust-node small { display: block; margin-bottom: 12px; color: var(--primary); font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+      .trust-node strong { display: block; margin-bottom: 9px; font-size: 17px; }
+      .trust-node p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+      .trust-node.root { color: var(--on-dark); background: var(--navy); border-color: var(--navy); }
+      .trust-node.root p { color: var(--on-dark-muted); }
+      .flow-arrow { display: grid; place-items: center; color: var(--primary); font-size: 24px; font-weight: 900; }
+      .architecture { display: grid; grid-template-columns: 1fr 42px 1fr 42px 1fr; gap: 0; align-items: center; }
+      .arch-column { display: grid; gap: 12px; }
+      .arch-node { padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+      .arch-node strong { display: block; margin-bottom: 5px; }
+      .arch-node small { color: var(--muted); line-height: 1.45; }
+      .arch-node.isolate { border-color: var(--warning); background: color-mix(in srgb, var(--surface) 90%, var(--warning)); }
+      .arch-foot { margin: 22px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+      .flow-list, .timeline { margin: 0; padding: 0; list-style: none; counter-reset: flow; border-top: 1px solid var(--border); }
+      .flow-list li { counter-increment: flow; display: grid; grid-template-columns: 70px 230px 1fr; gap: 22px; padding: 22px 0; border-bottom: 1px solid var(--border); }
+      .flow-list li::before { content: counter(flow, decimal-leading-zero); color: var(--primary); font-size: 14px; font-weight: 900; }
+      .flow-list strong { font-size: 16px; }
+      .flow-list p { margin: 0; color: var(--muted); line-height: 1.6; }
+      .timeline li { display: grid; grid-template-columns: 110px 220px 1fr; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--border); }
+      .timeline time { color: var(--primary); font-weight: 900; font-variant-numeric: tabular-nums; }
+      .timeline strong { font-size: 16px; }
+      .timeline p { margin: 0; color: var(--muted); line-height: 1.6; }
+      .timeline .exit { display: block; margin-top: 8px; color: var(--success); font-size: 13px; font-weight: 800; }
+      .check-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 36px 50px; }
+      .check-group { border-top: 3px solid var(--primary); padding-top: 18px; }
+      .check-group h3 { margin: 0 0 14px; font-size: 18px; }
+      .check-group ul { margin: 0; padding: 0; list-style: none; }
+      .check-group li { position: relative; margin: 12px 0; padding-left: 28px; color: var(--muted); line-height: 1.55; }
+      .check-group li::before { content: ""; position: absolute; left: 0; top: .25em; width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); }
+      .no-go { margin-top: 32px; padding: 20px 22px; border: 1px solid var(--danger); border-radius: 12px; color: var(--danger); background: color-mix(in srgb, var(--surface) 92%, var(--danger)); font-weight: 900; }
+      .next-list { margin: 0; padding: 0; list-style: none; counter-reset: next; border-top: 1px solid var(--border); }
+      .next-list li { counter-increment: next; display: grid; grid-template-columns: 70px 1fr auto; gap: 18px; align-items: start; padding: 18px 0; border-bottom: 1px solid var(--border); }
+      .next-list li::before { content: counter(next, decimal-leading-zero); color: var(--primary); font-weight: 900; }
+      .next-list span { color: var(--foreground); line-height: 1.6; }
+      .next-list small { color: var(--muted); font-weight: 800; white-space: nowrap; }
+      .sources { margin: 0; padding-left: 20px; columns: 2; column-gap: 50px; }
+      .sources li { break-inside: avoid; margin: 0 0 14px; color: var(--muted); line-height: 1.55; }
+      .sources a { color: var(--primary-strong); font-weight: 750; overflow-wrap: anywhere; }
+      footer { width: min(var(--content), calc(100% - 40px)); margin: 0 auto; padding: 34px 0 52px; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 12px; }
+      footer a { color: var(--primary-strong); font-weight: 800; }
+
+      @media (max-width: 900px) {
+        .meta-grid { grid-template-columns: 1fr 1fr; }
+        .release-lanes li { grid-template-columns: 90px 1fr auto; padding: 15px 0; }
+        .release-copy { grid-column: 2 / -1; padding-bottom: 8px; }
+        .toc ol { grid-template-columns: 1fr 1fr; }
+        .section-head { grid-template-columns: 70px 1fr; }
+        .boundary-grid { grid-template-columns: 1fr; }
+        .unit-row { grid-template-columns: 90px 1fr; }
+        .unit-row p, .unit-gate { grid-column: 2; }
+        .trust-flow { grid-template-columns: 1fr; gap: 10px; }
+        .flow-arrow { transform: rotate(90deg); min-height: 32px; }
+        .architecture { grid-template-columns: 1fr; gap: 10px; }
+        .architecture > .flow-arrow { transform: rotate(90deg); }
+      }
+
+      @media (max-width: 620px) {
+        .mast-inner, main, footer { width: min(100% - 28px, var(--content)); }
+        .mast-inner { padding-top: 18px; padding-bottom: 42px; }
+        .mast-nav { padding-bottom: 42px; }
+        .mast-actions a { display: none; }
+        h1 { font-size: 44px; line-height: 1.02; }
+        .thesis { margin-top: 22px; font-size: 17px; }
+        .meta-grid { grid-template-columns: 1fr; margin-top: 30px; }
+        .meta-grid div { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+        .meta-grid div:last-child { border-bottom: 0; }
+        .meta-grid dt { margin: 0; }
+        .release-lanes li { grid-template-columns: 76px 1fr; gap: 8px 12px; padding: 16px 0; }
+        .release-copy { grid-column: 2; }
+        .release-lanes .state { grid-column: 2; justify-self: start; }
+        .toc { padding-top: 18px; }
+        .toc ol { grid-template-columns: 1fr 1fr; gap: 0 14px; }
+        .toc a { font-size: 12px; }
+        .section { padding: 54px 0; }
+        .section-head { grid-template-columns: 1fr; gap: 8px; margin-bottom: 24px; }
+        .section-lede { font-size: 15px; }
+        .verdict { padding: 22px; box-shadow: none; }
+        .verdict p { font-size: 17px; }
+        .unit-row { grid-template-columns: 1fr; gap: 8px; padding: 20px 0; }
+        .unit-row p, .unit-gate { grid-column: 1; }
+        .flow-list li, .timeline li { grid-template-columns: 48px 1fr; gap: 10px; }
+        .flow-list p, .timeline p { grid-column: 2; }
+        .timeline time { grid-row: 1 / 3; }
+        .check-groups { grid-template-columns: 1fr; }
+        .next-list li { grid-template-columns: 42px 1fr; }
+        .next-list small { grid-column: 2; }
+        .sources { columns: 1; }
+        footer { flex-direction: column; }
+      }
+
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+      @media print {
+        .mast-actions, .toc { display: none; }
+        .mast { color: var(--print-ink); background: var(--surface); border-bottom-color: var(--print-ink); }
+        .brand, .thesis, .meta-grid dd, .release-name { color: var(--print-ink); }
+        .status-line, .meta-grid dt, .release-time, .release-copy { color: var(--print-muted); }
+        .meta-grid, .release-lanes, .release-lanes li { border-color: var(--print-border); }
+        .section { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">跳到正文</a>
+    <header class="mast">
+      <div class="mast-inner">
+        <nav class="mast-nav" aria-label="文档操作">
+          <a class="brand" href="../"><span class="brand-mark">VID</span><span>VoiceID Protocol</span></a>
+          <div class="mast-actions">
+            <a href="VoiceID_Online_Beta_施工计划_v0.2.md">Markdown 原文</a>
+            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换明暗主题">切换主题</button>
+          </div>
+        </nav>
+        <p class="status-line">Approved · Sprint 0 in progress</p>
+        <h1>从 Playground 到可信 Online Beta</h1>
+        <p class="thesis">
+          <strong>Playground 可以现在发布；真实 Beta 必须先建立服务端信任根。</strong>
+          最短路径不是先接声纹模型，而是先完成 Passkey / SIWE、一次性挑战、服务端会话、隐私边界与可回滚工程基线。
+        </p>
+        <dl class="meta-grid">
+          <div><dt>更新</dt><dd>2026-07-21</dd></div>
+          <div><dt>受众</dt><dd>产品、工程、安全、隐私负责人</dd></div>
+          <div><dt>当前分支</dt><dd><span class="mono">codex/online-beta-v0.2</span></dd></div>
+          <div><dt>决策状态</dt><dd>Sprint 0 已批准实施</dd></div>
+        </dl>
+        <ol class="release-lanes" aria-label="三个发布单元">
+          <li><span class="release-time">1–2 天</span><span class="release-name">A · Playground</span><span class="release-copy">公网体验协议编排；明确不认证，<span class="mono">serverVerified=false</span>。</span><span class="state state-go">可发布</span></li>
+          <li><span class="release-time">4–6 周</span><span class="release-name">B · Online Beta</span><span class="release-copy">邀请制真实注册、登录、退出和撤销；语音默认 observe-only。</span><span class="state state-build">施工主线</span></li>
+          <li><span class="release-time">6–10+ 周</span><span class="release-name">C · Voice Pilot</span><span class="release-copy">受控声纹辅助验证；模型、攻击、合规和独立审查全部过门后才开放。</span><span class="state state-gate">质量门后</span></li>
+        </ol>
+      </div>
+    </header>
+
+    <main id="content">
+      <nav class="toc" aria-label="目录">
+        <p class="toc-label">阅读路径</p>
+        <ol>
+          <li><a href="#verdict">执行结论</a></li>
+          <li><a href="#readiness">当前就绪度</a></li>
+          <li><a href="#units">发布单元</a></li>
+          <li><a href="#trust">信任模型</a></li>
+          <li><a href="#architecture">目标架构</a></li>
+          <li><a href="#flows">认证与语音</a></li>
+          <li><a href="#lifecycle">数据生命周期</a></li>
+          <li><a href="#threats">威胁控制</a></li>
+          <li><a href="#timeline">六周施工</a></li>
+          <li><a href="#backlog">P0 / P1 / P2</a></li>
+          <li><a href="#gate">Go / No-Go</a></li>
+          <li><a href="#next">接下来 48 小时</a></li>
+        </ol>
+      </nav>
+
+      <section class="section" id="verdict" aria-labelledby="verdict-title">
+        <div class="section-head"><span class="section-number">01 / Verdict</span><div><h2 id="verdict-title">现在能发布什么，不能承诺什么</h2><p class="section-lede">当前仓库已是一个边界清楚的本地协议演示，但它没有真实语音识别、服务端验签、会话撤销或生物数据治理能力。</p></div></div>
+        <div class="verdict"><p class="verdict-label">执行判断</p><p>立刻发布 A，立即施工 B；C 保持门控。任何客户端生成的分数、签名结果和会话都不能成为认证事实，直到服务器完成一次性挑战消费与密码学验证。</p></div>
+        <div class="boundary-grid">
+          <div class="plain-block"><h3>当前已经证明</h3><ul><li>麦克风授权、音频质量计算与音轨释放流程。</li><li>EIP-1193 钱包连接与可读测试签名请求。</li><li>demo-only VoiceProof、session-only 档案和静态发布检查。</li><li>官网、文档、品牌资产具备继续演进的基础。</li></ul></div>
+          <div class="boundary-stop"><h3>当前没有证明</h3><ul><li>用户念对挑战或声音属于已注册用户。</li><li>音频不是回放、合成或虚拟设备注入。</li><li>钱包签名有效且 nonce 未被重放。</li><li>声纹处理满足同意、删除与安全要求。</li></ul></div>
+        </div>
+      </section>
+
+      <section class="section" id="readiness" aria-labelledby="readiness-title">
+        <div class="section-head"><span class="section-number">02 / Readiness</span><div><h2 id="readiness-title">上线就绪度不是一个总分</h2><p class="section-lede">静态体验层已接近发布；认证、数据、隐私与运维层仍是 P0 阻塞。用分域判断比一个“完成百分比”更诚实。</p></div></div>
+        <div class="table-wrap"><table><caption>当前实现与真实 Online Beta 的差距。</caption><thead><tr><th scope="col">领域</th><th scope="col">当前状态</th><th scope="col">主要差距</th><th scope="col">判断</th></tr></thead><tbody>
+          <tr><th scope="row">官网与品牌</th><td>中英文站、SVG、白皮书</td><td>需发布本地成果并持续校准能力文案</td><td class="good">可复用</td></tr>
+          <tr><th scope="row">Browser Playground</th><td>本地主流程与静态检查完成</td><td>只有音质检测，没有说话人识别</td><td class="good">可发布</td></tr>
+          <tr><th scope="row">钱包认证</th><td>客户端返回 <span class="mono">personal_sign</span></td><td>无服务器 nonce、EOA/ERC-1271 验签与消费</td><td class="bad">P0 阻塞</td></tr>
+          <tr><th scope="row">Passkey / 会话</th><td>尚未实现</td><td>无真实强认证、HttpOnly 会话、撤销与轮换</td><td class="bad">P0 阻塞</td></tr>
+          <tr><th scope="row">声纹引擎</th><td>无真实模型</td><td>无短语匹配、说话人验证、PAD 与评测集</td><td class="warn">研究门槛</td></tr>
+          <tr><th scope="row">数据与隐私</th><td>只有原则性文档</td><td>无同意记录、影响评估、删除证明与处理者边界</td><td class="bad">P0 阻塞</td></tr>
+          <tr><th scope="row">工程发布</th><td>依赖零、静态检查可运行</td><td>CI 正在建立；后续仍需预发、回滚与可观测性</td><td class="warn">Sprint 0</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="section" id="units" aria-labelledby="units-title">
+        <div class="section-head"><span class="section-number">03 / Units</span><div><h2 id="units-title">三个发布单元，各自只承诺能证明的事实</h2><p class="section-lede">把静态体验、真实认证与声纹试点拆开，避免模拟路径与生产信任边界互相污染。</p></div></div>
+        <div class="unit-map">
+          <article class="unit-row"><time>1–2 天</time><h3>A · Browser Playground v0.1</h3><p>发布现有体验、Docs 与决策稿。声音只做本地质量演示；钱包签名不经服务端验证。</p><span class="unit-gate">退出信号：公网 200、CI 绿色、无误导文案。</span></article>
+          <article class="unit-row"><time>4–6 周</time><h3>B · Online Beta v0.2</h3><p>Passkey 或服务端 SIWE 建立真实会话；语音挑战与评估可运行，但默认不参与放行。</p><span class="unit-gate">退出信号：邀请制用户可注册、登录、退出、撤销、删除。</span></article>
+          <article class="unit-row"><time>6–10+ 周</time><h3>C · Verified Voice Pilot</h3><p>只在受控设备、人群和数据区域内试验短语匹配、说话人匹配与 PAD 风险信号。</p><span class="unit-gate">退出信号：模型、攻击、隐私和独立安全审查全部通过。</span></article>
+        </div>
+      </section>
+
+      <section class="section" id="trust" aria-labelledby="trust-title">
+        <div class="section-head"><span class="section-number">04 / Trust</span><div><h2 id="trust-title">认证信任根必须位于服务器</h2><p class="section-lede">浏览器负责交互和采集，不负责宣布认证成功。声音输出可解释的策略信号；服务端强认证仍是会话成立的必要条件。</p></div></div>
+        <div class="trust-flow" role="img" aria-label="从不可信浏览器输入到服务端会话的信任路径">
+          <div class="trust-node"><small>不可信输入</small><strong>浏览器 / DOM / 客户端分数</strong><p>可被篡改；本地会话与 <span class="mono">serverVerified</span> 值不构成事实。</p></div><div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="trust-node root"><small>信任根</small><strong>Passkey 或服务端 SIWE</strong><p>服务器校验 origin、challenge、nonce、签名、时间与单次消费。</p></div><div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="trust-node"><small>附加信号</small><strong>VoiceAssessment</strong><p>分别输出质量、短语匹配、说话人相似度与 PAD 风险。</p></div><div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="trust-node"><small>可信结果</small><strong>服务端会话</strong><p>HttpOnly、可轮换、可撤销、带 idle 与 absolute expiry。</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="architecture" aria-labelledby="architecture-title">
+        <div class="section-head"><span class="section-number">05 / Architecture</span><div><h2 id="architecture-title">小型模块化后端，加一个隔离的语音运行时</h2><p class="section-lede">首版不引入合约、DID 节点、事件总线或服务网格。除敏感语音推理隔离外，其余后端保持单一模块化服务。</p></div></div>
+        <div class="architecture" role="img" aria-label="VoiceID Online Beta 目标架构">
+          <div class="arch-column"><div class="arch-node"><strong>Online Beta Web</strong><small>Passkey、钱包、同意、采集与用户控制</small></div><div class="arch-node"><strong>Browser Playground</strong><small>独立静态路由；模拟能力不进入生产</small></div></div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="arch-column"><div class="arch-node"><strong>同源 API Gateway</strong><small>origin、限速、安全头、请求关联</small></div><div class="arch-node"><strong>Auth / Session</strong><small>challenge、Passkey、SIWE、session、audit</small></div></div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="arch-column"><div class="arch-node isolate"><strong>Isolated Voice Inference</strong><small>tmpfs 短暂音频、模型版本、删除验证</small></div><div class="arch-node"><strong>PostgreSQL + KMS</strong><small>凭证、会话、同意、加密模板与审计</small></div></div>
+        </div>
+        <p class="arch-foot">WebAuthn RP ID、SIWE domain、Cookie domain 与 TLS origin 必须在 Sprint 1 开工前冻结。Web 与 API 优先同源，语音推理服务不暴露公网。</p>
+      </section>
+
+      <section class="section" id="flows" aria-labelledby="flows-title">
+        <div class="section-head"><span class="section-number">06 / Flows</span><div><h2 id="flows-title">先完成强认证，再接语音垂直切片</h2><p class="section-lede">语音 enrollment 与 verification 必须发生在已验证会话内；任何语音失败都不能锁死 Passkey / SIWE 的可用路径。</p></div></div>
+        <ol class="flow-list">
+          <li><strong>服务器签发挑战</strong><p>Passkey ceremony 或 SIWE message 由服务器生成，保存 hash、过期时间与消费状态。</p></li>
+          <li><strong>验证密码学凭证</strong><p>WebAuthn 校验 RP ID、origin、challenge、UP/UV；SIWE 严格校验 domain、URI、address、chain、nonce 与时间。</p></li>
+          <li><strong>建立受控会话</strong><p>服务端签发 HttpOnly Cookie，登录后轮换 ID，支持退出、撤销、idle 与 absolute expiry。</p></li>
+          <li><strong>获取单独同意</strong><p>显示用途、保存内容、保留期、撤回与替代路径；记录文本版本和地区。</p></li>
+          <li><strong>短暂处理语音</strong><p>随机挑战先做质量、VAD、短语匹配，再做 speaker / PAD；原始音频只存在于隔离内存或 tmpfs。</p></li>
+          <li><strong>输出分阶段评估</strong><p>VoiceAssessment 不使用含糊的单一 verified 状态；首版只观察或附加风控。</p></li>
+        </ol>
+      </section>
+
+      <section class="section" id="lifecycle" aria-labelledby="lifecycle-title">
+        <div class="section-head"><span class="section-number">07 / Lifecycle</span><div><h2 id="lifecycle-title">先定义删除，再定义采集</h2><p class="section-lede">生物数据不可像密码一样更换。每一种数据都要在进入系统前明确保留期、撤销触发和备份边界。</p></div></div>
+        <div class="table-wrap"><table><caption>建议默认值需要产品、隐私与法律共同确认。</caption><thead><tr><th scope="col">数据</th><th scope="col">建议保留</th><th scope="col">删除 / 撤销要求</th></tr></thead><tbody>
+          <tr><th scope="row">原始音频</th><td>推理期间，目标少于 60 秒</td><td>成功、失败、取消与超时都验证删除；禁止进入备份</td></tr>
+          <tr><th scope="row">临时文件</th><td><span class="mono">tmpfs only</span></td><td>进程异常或重启后自动消失</td></tr>
+          <tr><th scope="row">加密声纹模板</th><td>用户同意有效期内</td><td>撤回或删号后主存储立即失效；备份按批准周期清除</td></tr>
+          <tr><th scope="row">VoiceAssessment</th><td>7–30 天待确认</td><td>只有去标识结果可进入质量统计</td></tr>
+          <tr><th scope="row">nonce / challenge</th><td>5 分钟 + 短期安全审计</td><td>事务性单次消费；过期自动清理</td></tr>
+          <tr><th scope="row">Web 会话</th><td>15 分钟 idle / 最长 8 小时建议</td><td>退出、风险事件和凭证撤销立即失效</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="section" id="threats" aria-labelledby="threats-title">
+        <div class="section-head"><span class="section-number">08 / Threats</span><div><h2 id="threats-title">高风险路径必须有可测试控制</h2><p class="section-lede">“监控”不是缓解措施。每个威胁都要落到实现、自动化测试、feature flag 或明确的产品边界。</p></div></div>
+        <div class="table-wrap"><table><caption>发布前优先验证的威胁与控制。</caption><thead><tr><th scope="col">威胁</th><th scope="col">影响</th><th scope="col">必须控制</th></tr></thead><tbody>
+          <tr><th scope="row">噪声通过挑战</th><td>伪造 presence</td><td>服务端短语转写匹配；challenge 单次消费</td></tr>
+          <tr><th scope="row">回放 / AI 克隆</th><td>冒充用户</td><td>随机挑战、攻击集、PAD 风险、强因子必需与一键停用</td></tr>
+          <tr><th scope="row">虚拟音频注入</th><td>绕过物理在场</td><td>承认 Web 限制；声音永不作为唯一因子</td></tr>
+          <tr><th scope="row">SIWE 重放</th><td>账户接管</td><td>服务器 nonce、事务消费、origin/time/chain 校验</td></tr>
+          <tr><th scope="row">XSS / CSRF</th><td>会话滥用</td><td>严格 CSP、HttpOnly/SameSite Cookie、origin 校验与 CSRF 控制</td></tr>
+          <tr><th scope="row">模板或日志泄露</th><td>不可逆隐私损害</td><td>KMS envelope encryption、字段 allowlist、最小权限与删除演练</td></tr>
+          <tr><th scope="row">模型偏差与误拒</th><td>用户伤害 / 不可用</td><td>按设备、语言、环境、人群切片；始终提供非声纹路径</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="section" id="timeline" aria-labelledby="timeline-title">
+        <div class="section-head"><span class="section-number">09 / Timeline</span><div><h2 id="timeline-title">六周依赖路径</h2><p class="section-lede">每一周都有可观察的退出信号；未通过就不把风险转移到下一阶段。</p></div></div>
+        <ol class="timeline">
+          <li><time>D1–D2</time><strong>Sprint 0 · 冻结与公开基线</strong><p>分支、CI、状态文案、契约示例、移动与 ARIA 修复、Playground / Docs 发布。<span class="exit">退出：公网 200、CI 绿色、无认证误导。</span></p></li>
+          <li><time>Week 1</time><strong>真实认证骨架</strong><p>契约、Auth API、PostgreSQL、Passkey、会话、安全头与限速。<span class="exit">退出：预发真实 Passkey 会话可登录、刷新、退出和撤销。</span></p></li>
+          <li><time>Week 2</time><strong>SIWE 与钱包绑定</strong><p>服务器 message / nonce、EOA/ERC-1271、重放/过期/拒签测试。<span class="exit">退出：客户端伪造无效，同一签名重放必失败。</span></p></li>
+          <li><time>Week 3</time><strong>语音垂直切片</strong><p>单独同意、服务器挑战、tmpfs、VAD、短语匹配、模型候选与加密模板。<span class="exit">退出：错误短语失败，原始音频不进入持久化或日志。</span></p></li>
+          <li><time>Week 4</time><strong>模型与隐私验证</strong><p>replay/TTS/噪声攻击集、EER/FMR/FNMR、切片评估、PIPIA/DPIA 与删除演练。<span class="exit">退出：指标与已知失效环境可审计，否则 observe-only。</span></p></li>
+          <li><time>Week 5</time><strong>安全与可靠性</strong><p>ASVS L2、扫描、故障注入、Runbook、备份恢复、密钥轮换和独立审查。<span class="exit">退出：Critical / High 清零或有正式风险接受。</span></p></li>
+          <li><time>Week 6</time><strong>邀请制发布</strong><p>20–50 名成年用户，10% canary 起步，语音默认 observe-only。<span class="exit">退出：连续 7 天无 P0、无原始音频残留、SLO 达标。</span></p></li>
+        </ol>
+      </section>
+
+      <section class="section" id="backlog" aria-labelledby="backlog-title">
+        <div class="section-head"><span class="section-number">10 / Backlog</span><div><h2 id="backlog-title">优先级由发布风险决定</h2><p class="section-lede">P0 建立信任、合规与可回滚性；P1 提升闭测质量；P2 只有在真实需求和前置证据出现后才进入。</p></div></div>
+        <div class="table-wrap"><table><caption>范围越往后，越不应阻塞 v0.2。</caption><thead><tr><th scope="col">优先级</th><th scope="col">目标</th><th scope="col">代表性工作</th><th scope="col">处理规则</th></tr></thead><tbody>
+          <tr><th scope="row">P0</th><td>可信上线</td><td>Passkey、SIWE、会话、契约、数据、KMS、同意、删除、ASVS、E2E、回滚</td><td class="bad">任何缺失均 No-Go</td></tr>
+          <tr><th scope="row">P1</th><td>闭测质量</td><td>英文 Beta、第二 Passkey、数据导出、设备历史、阈值统计、完整设备矩阵</td><td class="warn">可在邀请制阶段补齐</td></tr>
+          <tr><th scope="row">P2</th><td>验证后扩展</td><td>原生客户端、非 EVM、DID/VC/ZK、正式 SDK、OIDC bridge、资产能力</td><td class="good">不阻塞 v0.2</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="section" id="gate" aria-labelledby="gate-title">
+        <div class="section-head"><span class="section-number">11 / Gate</span><div><h2 id="gate-title">Go / No-Go 不是发布当天才看的清单</h2><p class="section-lede">每项证据应在对应 Sprint 产生；发布负责人只汇总证据，不临时发明例外。</p></div></div>
+        <div class="check-groups">
+          <div class="check-group"><h3>产品与真实性</h3><ul><li>公网明确区分 Playground、Online Beta 与未来能力。</li><li>生产路由无模拟音频、钱包、PIN 或假恢复。</li><li>声音失败时仍可用强认证完成或恢复账户。</li></ul></div>
+          <div class="check-group"><h3>认证与会话</h3><ul><li>每个 challenge 由服务器签发、过期且只能消费一次。</li><li>EOA / ERC-1271 正反测试齐全，SIWE 严格解析。</li><li>会话只由服务器签发，可退出、撤销、超时和轮换。</li></ul></div>
+          <div class="check-group"><h3>声音与隐私</h3><ul><li>错误短语失败；speaker 与 PAD 分数独立且可追溯。</li><li>未过模型门时 VoiceAssessment 保持 observe-only。</li><li>同意、撤回、删除、替代路径和影响评估已批准。</li><li>异常路径也证明原始音频不进入持久化或备份。</li></ul></div>
+          <div class="check-group"><h3>工程与运维</h3><ul><li>CI、E2E、契约、迁移、安全扫描与预发冒烟绿色。</li><li>ASVS L2 有证据，Critical / High 为零或正式接受。</li><li>SLO、告警、Runbook、备份恢复、轮换与回滚演练通过。</li><li>feature flag 可关闭语音而不破坏强认证登录。</li></ul></div>
+        </div>
+        <div class="no-go">任何 P0 未通过，即判定 No-Go。声音、资产、隐私和会话安全不接受“先上线再补”的例外。</div>
+      </section>
+
+      <section class="section" id="next" aria-labelledby="next-title">
+        <div class="section-head"><span class="section-number">12 / Next 48h</span><div><h2 id="next-title">接下来 48 小时的施工顺序</h2><p class="section-lede">这条顺序以依赖关系排列：先形成公开、可回滚基线，再冻结真实认证的信任与 origin 决策。</p></div></div>
+        <ol class="next-list">
+          <li><span>冻结并提交当前成果，建立 v0.1 Playground 发布基线。</span><small>Sprint 0</small></li>
+          <li><span>让 GitHub Actions 执行站点、4 个 JS 语法与提交空白检查。</span><small>Sprint 0</small></li>
+          <li><span>发布并线上核对首页、Playground、Docs、资源、控制台与移动端。</span><small>Sprint 0</small></li>
+          <li><span>完成状态文案、Schema 示例、导航和电平 ARIA 回归。</span><small>Sprint 0</small></li>
+          <li><span>创建 ADR-002：信任模型、Passkey / SIWE、服务器音频处理与数据区域。</span><small>决策门</small></li>
+          <li><span>冻结 Online Beta origin、RP ID、SIWE domain、邀请地区与年龄边界。</span><small>决策门</small></li>
+          <li><span>建立契约唯一真源与第一个 server-issued challenge。</span><small>Sprint 1</small></li>
+          <li><span>先实现服务端认证与会话，再接真实语音。</span><small>关键路径</small></li>
+        </ol>
+      </section>
+
+      <section class="section" id="sources" aria-labelledby="sources-title">
+        <div class="section-head"><span class="section-number">13 / Sources</span><div><h2 id="sources-title">规范与审查基线</h2><p class="section-lede">实施时以当前官方规范和适用法律意见为准；本计划不替代法律意见、独立安全审计或模型认证。</p></div></div>
+        <ul class="sources">
+          <li><a href="https://pages.nist.gov/800-63-4/sp800-63b.html">NIST SP 800-63B Rev.4</a> · 认证器与生物识别边界</li>
+          <li><a href="https://www.w3.org/TR/webauthn-3/">W3C WebAuthn Level 3</a> · Passkey ceremony</li>
+          <li><a href="https://eips.ethereum.org/EIPS/eip-4361">ERC-4361</a> · Sign-In with Ethereum</li>
+          <li><a href="https://eips.ethereum.org/EIPS/eip-1271">ERC-1271</a> · 合约钱包签名验证</li>
+          <li><a href="https://owasp.org/www-project-application-security-verification-standard/">OWASP ASVS 5.0.0</a> · 应用安全验收</li>
+          <li><a href="https://www.samr.gov.cn/wljys/gzzd/art/2023/art_3ef1e889c1e644d4b65b5f5c7f432386.html">中华人民共和国个人信息保护法</a></li>
+          <li><a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj">EU GDPR</a> · 特殊类别数据与影响评估</li>
+          <li><a href="VoiceID_Online_Beta_施工计划_v0.2.md">完整 Markdown 施工计划</a> · 详细端点、数据表与职责</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer><span>VoiceID Online Beta v0.2 · 决策视图 · 2026-07-21</span><a href="../beta/">打开 Browser Playground</a></footer>
+    <script>
+      const root = document.documentElement;
+      const toggle = document.getElementById("theme-toggle");
+      toggle.addEventListener("click", () => {
+        const current = root.dataset.theme;
+        root.dataset.theme = current === "dark" ? "light" : "dark";
+      });
+    </script>
+  </body>
+</html>

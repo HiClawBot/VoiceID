@@ -10,7 +10,7 @@
     />
     <meta name="theme-color" content="#0B132B" />
     <meta property="og:title" content="VoiceID - Voice Identity Protocol" />
-    <meta property="og:description" content="Voice recognition, decentralized identity, and multi-chain wallets. Voice is you, ID is yours." />
+    <meta property="og:description" content="The VoiceID protocol vision and Browser Playground. The current build is a local demo, not biometric authentication." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="../assets/voiceid-logo.svg" />
     <link rel="icon" href="../assets/voiceid-mark.svg" type="image/svg+xml" />
@@ -28,6 +28,8 @@
           <a href="#protocol">Protocol</a>
           <a href="#wallet">Wallet</a>
           <a href="#developers">Developers</a>
+          <a class="mobile-core-link" href="../beta/" hreflang="zh-CN">Playground</a>
+          <a class="mobile-core-link" href="../docs/en/">Docs</a>
           <a href="#brand">Brand</a>
         </div>
         <div class="nav-actions">
@@ -45,20 +47,27 @@
             <img class="hero-logo" src="../assets/voiceid-logo.svg" alt="VoiceID - Voice is you, ID is yours" />
             <h1 id="hero-title">Your voice is your ID.</h1>
             <p class="hero-copy">
-              VoiceID turns voice into a verifiable identity key for web sign-in, multi-chain wallets, and self-owned identity flows.
+              VoiceID explores an auditable protocol joining voice signals, wallet credentials, and self-owned identity. The current build is a local Playground, not speaker verification or server authentication.
             </p>
+            <p class="implementation-status"><strong>Current build</strong> Browser Playground v0.1 · demo-only · serverVerified = false</p>
             <div class="hero-actions" aria-label="Primary actions">
-              <a class="button button-primary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">
-                View repository
+              <a class="button button-primary" href="../beta/" hreflang="zh-CN">
+                Open Playground
               </a>
               <a class="button button-secondary" href="#protocol">
                 Explore protocol
+              </a>
+              <a class="button button-tertiary" href="../docs/en/">
+                Read docs
+              </a>
+              <a class="button button-tertiary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">
+                View repository
               </a>
             </div>
             <dl class="hero-facts" aria-label="VoiceID capabilities">
               <div>
                 <dt>Voice proof</dt>
-                <dd>Biometric verification</dd>
+                <dd>Experimental direction</dd>
               </div>
               <div>
                 <dt>Self-owned identity</dt>
@@ -100,8 +109,8 @@
               <span></span>
               <span></span>
             </div>
-            <h3>Voice recognition</h3>
-            <p>Voice samples and feature checks can run locally or at a trusted edge, reducing exposure of raw voice data.</p>
+            <h3>Voice research direction</h3>
+            <p>The target is local or trusted-edge feature verification. The Playground only measures duration, volume, peak, and clipping; it does not identify a speaker.</p>
           </article>
           <article class="protocol-card">
             <svg aria-hidden="true" viewBox="0 0 48 48">
@@ -135,27 +144,27 @@
       <section class="section wallet-section" id="wallet" aria-labelledby="wallet-title">
         <div class="wallet-copy">
           <p class="eyebrow">Identity Wallet</p>
-          <h2 id="wallet-title">Use your voice to enter and protect your wallet.</h2>
+          <h2 id="wallet-title">Protect wallets with cryptographic credentials, then gate voice signals carefully.</h2>
           <p>
-            The mobile wallet and web sign-in concepts define the product baseline: voice sign-in, PIN fallback, multi-chain assets, and app access in one identity interface.
+            The interfaces below are future product concepts. A real Online Beta uses a passkey or server-verified wallet signature as its trust root; voice remains observe-only until model, privacy, and attack gates pass.
           </p>
           <ul class="feature-list">
-            <li>Local voice verification and privacy protection</li>
+            <li>Local audio-quality checks and data minimization</li>
             <li>Private keys, PIN fallback, and recovery flows</li>
             <li>A unified authentication entry point for apps</li>
           </ul>
         </div>
-        <div class="product-stage" aria-label="VoiceID product interface preview">
+        <div class="product-stage" aria-label="VoiceID future product interface concept">
           <div class="phone-mock" aria-hidden="true">
             <div class="phone-top">9:41</div>
             <img src="../assets/voiceid-mark.svg" alt="" />
             <strong>Voice<span>ID</span></strong>
-            <p>Unlock your identity with voice</p>
+            <p>Future identity-check concept</p>
             <div class="voice-code">123456789</div>
             <div class="wave-row">
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </div>
-            <small>Matching voiceprint...</small>
+            <small>Future verification concept</small>
           </div>
           <div class="login-panel" aria-hidden="true">
             <img src="../assets/voiceid-mark.svg" alt="" />
@@ -181,8 +190,8 @@
           <ol class="steps-list">
             <li>
               <span>01</span>
-              <strong>Create a voice proof</strong>
-              <p>The app asks the user to start voice verification and receives a minimized proof.</p>
+              <strong>Create a demo proof</strong>
+              <p>The current client creates a demo-only proof from basic audio-quality measurements.</p>
             </li>
             <li>
               <span>02</span>
@@ -197,8 +206,8 @@
           </ol>
           <div class="code-panel">
             <div class="code-head">
-              <span>Example interface</span>
-              <button type="button" data-copy-code>Copy</button>
+              <span>Future interface sketch · not executable</span>
+              <button type="button" data-copy-code aria-live="polite">Copy</button>
             </div>
             <pre><code>const voiceid = await VoiceID.connect({
   network: "testnet",
@@ -248,7 +257,9 @@ await session.verify();</code></pre>
           <h2 id="cta-title">Move VoiceID from protocol documents to verifiable implementation.</h2>
         </div>
         <div class="cta-actions">
-          <a class="button button-primary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">Open repository</a>
+          <a class="button button-primary" href="../beta/" hreflang="zh-CN">Open Playground</a>
+          <a class="button button-secondary" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">Open repository</a>
+          <a class="button button-secondary" href="../docs/en/">Read docs</a>
           <a class="button button-secondary" href="#top">Back to top</a>
         </div>
       </section>
@@ -261,6 +272,8 @@ await session.verify();</code></pre>
       </a>
       <p>Voice identity protocol · Decentralized control · Multi-chain wallet · Your voice is your ID</p>
       <a href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">github.com/HiClawBot/VoiceID</a>
+      <a href="../beta/" hreflang="zh-CN">Playground (Chinese)</a>
+      <a href="../docs/en/">Docs</a>
     </footer>
 
     <script src="../script.js"></script>

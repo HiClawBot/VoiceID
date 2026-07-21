@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VoiceID Docs - Voice Identity Protocol</title>
+    <meta
+      name="description"
+      content="VoiceID documentation for the Browser Playground, simulated proof, test wallet signatures, security boundaries, and developer integration."
+    />
+    <meta name="theme-color" content="#0B132B" />
+    <meta property="og:title" content="VoiceID Docs - Voice Identity Protocol" />
+    <meta property="og:description" content="VoiceID Browser Playground documentation and Online Beta delivery boundaries. The current build is demo-only." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="../../assets/voiceid-logo.svg" />
+    <link rel="icon" href="../../assets/voiceid-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../../styles.css" />
+  </head>
+  <body class="docs-page">
+    <a class="skip-link" href="#main">Skip to docs</a>
+    <header class="site-header" data-header>
+      <nav class="nav-shell" aria-label="Docs navigation">
+        <a class="brand-link" href="../../en/" aria-label="VoiceID home">
+          <img src="../../assets/voiceid-mark.svg" alt="" width="36" height="36" />
+          <span>Voice<span>ID</span></span>
+        </a>
+        <div class="nav-links" aria-label="Page navigation">
+          <a href="../../en/#protocol">Protocol</a>
+          <a href="../../en/#developers">Developers</a>
+          <a class="mobile-core-link" href="../../beta/" hreflang="zh-CN">Playground</a>
+          <a class="mobile-core-link" href="./" aria-current="page">Docs</a>
+          <a href="../../en/#brand">Brand</a>
+        </div>
+        <div class="nav-actions">
+          <a class="nav-action" href="../">Chinese</a>
+          <a class="nav-action" href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">Repository</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="docs-shell" id="main">
+      <aside class="docs-sidebar" aria-label="Docs table of contents">
+        <p>VoiceID Docs</p>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#quickstart">Quickstart</a>
+          <a href="#beta">Playground usage</a>
+          <a href="#voice-proof">Voice proof</a>
+          <a href="#wallet">Wallet signing</a>
+          <a href="#security">Security boundary</a>
+          <a href="#developer">Developer integration</a>
+          <a href="#release">Release checks</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <header class="docs-hero">
+          <p class="eyebrow">Documentation</p>
+          <h1>VoiceID usage docs</h1>
+          <p>
+            VoiceID is a voice identity protocol. These docs describe how the Browser Playground demonstrates voice challenges, simulated proofs, test wallet signatures, and local session output; it is not an online authentication system.
+          </p>
+          <div class="docs-meta">
+            <span>Status: Browser Playground v0.1</span>
+            <span>Scope: demo-only / no server authentication</span>
+            <span>Ports: 3400-3499</span>
+          </div>
+          <p>
+            The Chinese <a href="../VoiceID_Online_Beta_施工计划_v0.2.html" hreflang="zh-CN">visual decision brief</a>
+            shows the dependency path, risks, and release gates for a real Online Beta. Detailed source material remains in the
+            <a href="../VoiceID_Online_Beta_施工计划_v0.2.md" hreflang="zh-CN">Markdown implementation plan</a>.
+          </p>
+        </header>
+
+        <section class="docs-section" id="overview">
+          <h2>Overview</h2>
+          <p>
+            VoiceID aims to connect voice signals to an auditable identity protocol. The Playground only demonstrates UI and object flow. It does not touch mainnet assets, identify a speaker, perform real identity checks, or persist raw audio.
+          </p>
+          <pre><code>Open the Playground
+  -> Generate a random voice challenge
+  -> Capture browser audio and run local quality checks
+  -> Create a simulated VoiceProof
+  -> Bind a test wallet address
+  -> Sign a test message
+  -> Return an AuthSession</code></pre>
+        </section>
+
+        <section class="docs-section" id="quickstart">
+          <h2>Quickstart</h2>
+          <p>The current repository is a static GitHub Pages site. Local preview does not require dependency installation.</p>
+          <div class="code-panel docs-code">
+            <div class="code-head">
+              <span>Local preview</span>
+              <button type="button" data-copy-code aria-live="polite">Copy</button>
+            </div>
+            <pre><code>python3 -m http.server 3400</code></pre>
+          </div>
+          <p>Open the local site:</p>
+          <pre><code>http://localhost:3400/</code></pre>
+          <p>Only ports <code>3400-3499</code> are allowed. If <code>3400</code> is busy, use <code>3401</code>, then <code>3402</code>.</p>
+        </section>
+
+        <section class="docs-section" id="beta">
+          <h2>Playground usage</h2>
+          <p>
+            The Chinese-language Browser Playground is available at
+            <a href="../../beta/" hreflang="zh-CN"><code>/beta/</code></a>. It exposes this local demo flow:
+          </p>
+          <ol>
+            <li>Display a random digit challenge.</li>
+            <li>Request microphone access and start capture.</li>
+            <li>Check volume, duration, and input availability.</li>
+            <li>Create a simulated <code>VoiceProof</code>.</li>
+            <li>Connect a test wallet.</li>
+            <li>Sign a test message and return an <code>AuthSession</code>.</li>
+          </ol>
+          <p>If microphone permission is denied, the page must show a recoverable error instead of blocking the flow.</p>
+          <p>
+            The repository also includes the Chinese
+            <a href="../ADR-001_Beta_挑战与签名分层.md" hreflang="zh-CN">ADR-001</a>,
+            <a href="../ADR-002_Online_Beta_信任根与语音数据边界.md" hreflang="zh-CN">ADR-002</a>,
+            <a href="../VoiceID_Protocol_Schema.md" hreflang="zh-CN">Protocol Schema</a>, and
+            <a href="../VoiceID_Beta_验收清单.md" hreflang="zh-CN">acceptance checklist</a>.
+          </p>
+        </section>
+
+        <section class="docs-section" id="voice-proof">
+          <h2>Voice proof</h2>
+          <p><code>VoiceProof</code> is a demo-only Playground object. It only means an audio-quality threshold passed; it does not establish speaker identity, and raw audio is not persisted.</p>
+          <div class="code-panel docs-code">
+            <div class="code-head">
+              <span>VoiceProof example</span>
+              <button type="button" data-copy-code aria-live="polite">Copy</button>
+            </div>
+            <pre><code>{
+  "id": "vp_a62e15d4",
+  "type": "VoiceProof",
+  "version": "0.1",
+  "challengeId": "vc_7f3c9a21",
+  "scope": ["login", "wallet:sign"],
+  "createdAt": "2026-07-11T08:00:18.000Z",
+  "expiresAt": "2026-07-11T08:05:18.000Z",
+  "method": "local-simulated-v0",
+  "assurance": "demo-only",
+  "status": "verified",
+  "audioQuality": {
+    "durationMs": 4218,
+    "rms": 0.084,
+    "peak": 0.612,
+    "clippingRatio": 0.001,
+    "quality": "good",
+    "source": "microphone"
+  },
+  "rawAudioPersisted": false
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="wallet">
+          <h2>Wallet signing</h2>
+          <p>The Playground only permits test signatures. It must not trigger transfers, token approvals, delegated spending, or mainnet asset operations.</p>
+          <pre><code>VoiceID Playground Login
+Domain: localhost:3400
+Nonce: 5b8f31a2d0e4
+VoiceProof: vp_a62e15d4
+Scope: login,wallet:sign
+Expires: 2026-07-11T08:05:18.000Z</code></pre>
+          <p>Missing wallet, rejected connection, and rejected signature must each return a distinct error state.</p>
+        </section>
+
+        <section class="docs-section" id="security">
+          <h2>Security boundary</h2>
+          <ul>
+            <li>Do not persist raw audio.</li>
+            <li>Do not initiate real transfers.</li>
+            <li>Do not present simulated voice proof as production biometrics.</li>
+            <li>Every proof object must have an expiration time.</li>
+            <li>Users must be able to recover after denying permissions or signatures.</li>
+          </ul>
+        </section>
+
+        <section class="docs-section" id="developer">
+          <h2>Developer integration</h2>
+          <p>This is a non-executable sketch of a future SDK, not an API exported by the current repository. The native modules in <code>beta/adapters/</code> are the executable source of truth.</p>
+          <div class="code-panel docs-code">
+            <div class="code-head">
+              <span>Future interface sketch · not executable</span>
+              <button type="button" data-copy-code aria-live="polite">Copy</button>
+            </div>
+            <pre><code>const voiceid = await VoiceID.connect({
+  network: "testnet",
+  wallet: "injected"
+});
+
+const session = await voiceid.authenticate({
+  scope: ["login", "wallet:sign"],
+  proof: "voice"
+});
+
+await session.verify();</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="release">
+          <h2>Release checks</h2>
+          <ul>
+            <li>Chinese site <code>/</code> is reachable.</li>
+            <li>English site <code>/en/</code> is reachable and contains no Chinese copy.</li>
+            <li>Chinese docs <code>/docs/</code> are reachable.</li>
+            <li>English docs <code>/docs/en/</code> are reachable and contain no Chinese copy.</li>
+            <li>Browser Playground <code>/beta/</code> is reachable and visibly marked demo-only.</li>
+            <li>Local preview only uses ports <code>3400-3499</code>.</li>
+            <li>Static assets have no missing references.</li>
+            <li>The Playground does not trigger real transfers.</li>
+            <li><a href="../RELEASE_v0.1_Playground.md" hreflang="zh-CN">v0.1 release notes</a> document capability boundaries and rollback.</li>
+          </ul>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer docs-footer">
+      <a class="brand-link" href="../../en/" aria-label="VoiceID home">
+        <img src="../../assets/voiceid-mark.svg" alt="" width="32" height="32" />
+        <span>Voice<span>ID</span></span>
+      </a>
+      <p>VoiceID docs · Browser Playground v0.1 · demo-only</p>
+      <a href="https://github.com/HiClawBot/VoiceID" target="_blank" rel="noreferrer">github.com/HiClawBot/VoiceID</a>
+    </footer>
+
+    <script src="../../script.js"></script>
+  </body>
+</html>
