@@ -12,9 +12,16 @@ from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SKIP_DIRS = {".git", "output", "tmp"}
 CJK_RE = re.compile(r"[\u3400-\u9fff]")
-PORT_RE = re.compile(r"(?:localhost:|http\.server\s+)(\d{2,5})")
+PORT_RE = re.compile(r"http\.server\s+(\d{2,5})")
+STATIC_PAGE_PATHS = (
+    "index.html",
+    "en/index.html",
+    "docs/index.html",
+    "docs/en/index.html",
+    "beta/index.html",
+    "docs/VoiceID_Online_Beta_施工计划_v0.2.html",
+)
 BETA_STORAGE_KEYS = {
     "voiceid.beta.proof",
     "voiceid.beta.profile",
@@ -153,13 +160,13 @@ def check_beta_safety(errors: list[str]) -> None:
 
 
 def main() -> int:
-    pages = sorted(
-        path
-        for path in ROOT.rglob("*.html")
-        if not any(part in SKIP_DIRS for part in path.relative_to(ROOT).parts)
-    )
+    pages = [ROOT / relative for relative in STATIC_PAGE_PATHS if (ROOT / relative).exists()]
     errors: list[str] = []
     audits = {page: parse_page(page) for page in pages}
+
+    missing_pages = sorted(relative for relative in STATIC_PAGE_PATHS if not (ROOT / relative).exists())
+    for relative in missing_pages:
+        errors.append(f"Missing declared static page: {relative}")
 
     for relative, markers in PUBLIC_TRUTH_MARKERS.items():
         path = ROOT / relative

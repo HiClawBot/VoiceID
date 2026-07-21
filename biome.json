@@ -1,0 +1,18 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"package.json",
+			"tsconfig.base.json",
+			"biome.json",
+			"packages/contracts/**",
+			"services/auth-api/**",
+			"apps/online-beta/**",
+			"!!**/node_modules",
+			"!!**/dist",
+			"!!**/playwright-report",
+			"!!**/test-results"
+		]
+	}
+}

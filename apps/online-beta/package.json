@@ -1,0 +1,21 @@
+{
+	"name": "@voiceid/online-beta",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite",
+		"e2e": "npm run e2e:prepare && playwright test",
+		"e2e:prepare": "NODE_ENV=test DATABASE_URL=${TEST_DATABASE_URL:-postgres://localhost/voiceid_test} TOKEN_PEPPER=e2e-token-pepper-with-more-than-32-characters npm run db:test:reset -w @voiceid/auth-api",
+		"preview": "vite preview",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@simplewebauthn/browser": "13.3.0",
+		"@voiceid/contracts": "0.1.0"
+	},
+	"devDependencies": {
+		"vite": "8.1.5"
+	}
+}

@@ -40,3 +40,58 @@ jobs:
           node --check beta/beta.js
           node --check beta/adapters/voice-proof.js
           node --check beta/adapters/wallet-provider.js
+
+  online-beta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.13-alpine
+        env:
+          POSTGRES_DB: voiceid_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d voiceid_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/voiceid_test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Check dependency vulnerabilities
+        run: npm audit --audit-level=high
+
+      - name: Lint, typecheck, test, and build workspaces
+        run: npm run check:workspace
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the Passkey browser lifecycle
+        run: npm run e2e
+
+      - name: Upload failed browser evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: online-beta-playwright-report
+          path: |
+            apps/online-beta/playwright-report/
+            apps/online-beta/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,0 +1,52 @@
+# VoiceID Online Beta Auth Skeleton v0.2
+
+状态：local/staging candidate，未批准生产发布
+
+日期：2026-07-21
+
+## 本版本解决的问题
+
+Browser Playground 的 challenge、proof 和 session 全部由不可信客户端生成。v0.2 首次建立独立的服务器信任根：邀请用户以 Passkey 完成注册或登录，只有服务器验证 WebAuthn ceremony 后才签发会话。
+
+## 已实现
+
+- npm workspace：`packages/contracts`、`services/auth-api`、`apps/online-beta`，不搬迁或改写现有静态官网与 Playground。
+- TypeBox 运行时契约与 OpenAPI 3.1 输出；Fastify 请求校验直接消费共享 Schema。
+- PostgreSQL 扩展式初始迁移：用户、邀请、注册意图、challenge、credential、session、consent 和 allowlist audit event。
+- 一次性、5 分钟过期的注册/认证 challenge；数据库只保存带用途域分离的 HMAC-SHA256。
+- discoverable Passkey：resident key required、user verification required、attestation none；服务端严格校验 origin、RP ID、challenge 和签名。
+- 服务器生成的 32-byte opaque session token；数据库只保存 token HMAC。Cookie 使用 `HttpOnly; SameSite=Strict`，生产强制 `Secure`。
+- 15 分钟 idle expiry、8 小时 absolute expiry、当前会话退出与用户全部会话撤销。
+- 精确 Origin 检查、全局/认证限速、安全响应头、no-store、liveness/readiness、请求 ID 和不含凭证载荷的审计事件。
+- 独立 Vite 页面：邀请兑换、Passkey 注册/登录、会话恢复、退出和 revoke-all；不存在客户端硬编码认证成功态。
+
+## 自动验证证据
+
+- TypeScript strict typecheck 与 Biome lint。
+- 5 项 fail-closed 配置测试、3 项 token/hash 测试。
+- PostgreSQL 集成测试验证邀请单次消费、并发 challenge 只有一个消费者成功、opaque session 查找和撤销。
+- Playwright + Chrome/Chromium 虚拟认证器验证真实注册、刷新恢复、退出、重新登录、认证断言重放拒绝、revoke-all 和恶意 Origin 拒绝。
+- npm production/full dependency audit 均为 0 known vulnerabilities（检查日期 2026-07-21）。
+
+## 明确未实现
+
+- 生产域名、RP ID、TLS/同源代理、托管数据库、secret manager、KMS、告警、备份恢复和三环境基础设施。
+- 第二 Passkey、凭证列表/撤销、账户删除/导出、管理员邀请发行、邮件或人工恢复。
+- SIWE、ERC-1271、钱包绑定、交易或任何链写入。
+- 真实音频、声纹模板、模型推理、VoiceAssessment、PIPIA/DPIA 或生物数据处理。
+
+## Production No-Go
+
+在以下决策与证据全部完成前不得把本版本对真实用户开放：
+
+1. 冻结 Online Beta 的 HTTPS origin、WebAuthn RP ID、Cookie 域、邀请地区与数据区域。
+2. 使用环境 secret manager/KMS 注入独立 pepper 与数据库凭据，验证轮换与撤销。
+3. 通过反向代理提供 Web/API 同源、安全响应头、TLS、请求大小/超时和受控日志。
+4. 完成账户删除、第二认证器/安全恢复、凭证撤销、审计查询、告警与运维 Runbook。
+5. 在预发运行依赖/SAST/DAST、ASVS L2 证据映射、备份恢复、迁移和应用回滚演练，并完成独立安全审查。
+
+## 回滚
+
+- 应用回滚：停止 Online Beta Web/Auth API，保持现有 GitHub Pages 官网与 Browser Playground 不变。
+- 数据库：`001_initial.sql` 只新增表。测试环境可由受保护的 `_test` reset 命令重建；生产不提供自动 destructive down migration。
+- 凭证/会话：停止服务不会把 Passkey 私钥带到服务器；会话可在数据库批量设置 `revoked_at`。正式运维命令需在生产基础设施阶段以双人审批和审计实现。

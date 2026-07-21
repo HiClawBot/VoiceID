@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="VoiceID invite-only Passkey authentication beta." />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+			content="default-src 'self'; base-uri 'none'; connect-src 'self'; form-action 'self'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'"
+		/>
+		<title>VoiceID Online Beta · Passkey</title>
+		<link rel="icon" href="/voiceid-app-icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="VoiceID Online Beta home">
+        <span class="brand-mark" aria-hidden="true">V</span>
+        <span>VOICEID</span>
+      </a>
+      <span class="environment">INVITE-ONLY · PRE-RELEASE</span>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <p class="eyebrow">PASSKEY FOUNDATION / SPRINT 1</p>
+        <h1 id="page-title">A real session.<br />No voice data.</h1>
+        <p class="lede">
+          This isolated beta uses a device Passkey and a server-owned session. It does not collect voice samples,
+          connect a wallet, or authorize transactions.
+        </p>
+				<ul class="truth-strip" aria-label="Security properties">
+					<li>SERVER CHALLENGE</li>
+					<li>USER VERIFICATION</li>
+					<li>HTTPONLY SESSION</li>
+					<li>NO BIOMETRIC UPLOAD</li>
+				</ul>
+      </section>
+
+      <div id="status" class="status" role="status" aria-live="polite">Checking server session…</div>
+
+      <section id="guest-panel" class="workspace" aria-label="Passkey registration and sign in">
+        <article class="panel">
+          <div class="panel-number">01</div>
+          <div class="panel-content">
+            <p class="eyebrow">NEW ACCOUNT</p>
+            <h2>Redeem an invitation</h2>
+            <p>Invitation codes are consumed once. Your display name is not used as a login identifier.</p>
+            <form id="invite-form">
+              <label for="display-name">Display name</label>
+              <input id="display-name" name="displayName" autocomplete="nickname" minlength="1" maxlength="64" required />
+              <label for="invite-code">Invitation code</label>
+              <input id="invite-code" name="inviteCode" autocomplete="off" minlength="8" maxlength="128" required />
+              <button id="redeem-button" type="submit">Redeem invitation</button>
+            </form>
+
+            <div id="registration-step" class="registration-step" hidden>
+              <p>The invitation is accepted. Create a Passkey to activate this account.</p>
+              <button id="register-button" type="button">Create Passkey</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel panel-dark">
+          <div class="panel-number">02</div>
+          <div class="panel-content">
+            <p class="eyebrow">RETURNING ACCOUNT</p>
+            <h2>Sign in with a Passkey</h2>
+            <p>Choose a discoverable Passkey. The server verifies the RP ID, origin, challenge, signature, and user verification.</p>
+            <button id="signin-button" type="button">Sign in</button>
+          </div>
+        </article>
+      </section>
+
+      <section id="session-panel" class="session-panel" aria-labelledby="session-title" hidden>
+        <p class="eyebrow">AUTHENTICATED SERVER SESSION</p>
+        <h2 id="session-title">Session active</h2>
+        <dl>
+          <div><dt>Account</dt><dd id="session-user">—</dd></div>
+          <div><dt>Assurance</dt><dd id="session-assurance">—</dd></div>
+          <div><dt>Idle expiry</dt><dd id="session-idle">—</dd></div>
+          <div><dt>Absolute expiry</dt><dd id="session-absolute">—</dd></div>
+        </dl>
+        <div class="actions">
+          <button id="logout-button" type="button">Log out this session</button>
+          <button id="revoke-button" class="button-secondary" type="button">Revoke all sessions</button>
+        </div>
+      </section>
+
+      <aside class="boundary" aria-labelledby="boundary-title">
+        <p class="eyebrow">CURRENT BOUNDARY</p>
+        <h2 id="boundary-title">Passkey first. Voice later, behind separate approval.</h2>
+        <p>
+          Voice enrollment remains disabled until consent, data region, privacy-impact assessment, deletion proof,
+          model evaluation, and independent security review are complete.
+        </p>
+      </aside>
+    </main>
+
+    <footer>
+      <span>VOICEID ONLINE BETA / AUTH SKELETON</span>
+      <a href="/docs/">Security and protocol docs</a>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
