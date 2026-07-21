@@ -3,3 +3,9 @@ output/
 node_modules/
 dist/
 tmp/
+.env
+.env.*
+!.env.example
+playwright-report/
+test-results/
+.playwright-cli/

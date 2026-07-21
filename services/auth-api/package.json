@@ -1,0 +1,26 @@
+{
+	"name": "@voiceid/auth-api",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": "./dist/server.js",
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"db:migrate": "tsx src/cli/migrate.ts",
+		"db:test:reset": "tsx src/cli/reset-test-db.ts",
+		"dev": "tsx watch src/server.ts",
+		"start": "node dist/server.js",
+		"test": "vitest run",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@fastify/cookie": "11.1.2",
+		"@fastify/helmet": "13.1.0",
+		"@fastify/rate-limit": "11.1.0",
+		"@fastify/swagger": "9.8.1",
+		"@simplewebauthn/server": "13.3.2",
+		"@voiceid/contracts": "0.1.0",
+		"fastify": "5.10.0",
+		"postgres": "3.4.9"
+	}
+}
